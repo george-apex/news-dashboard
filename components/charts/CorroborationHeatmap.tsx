@@ -34,7 +34,7 @@ export function CorroborationHeatmap({ data, loading, onCellClick }: Corroborati
             <th className="text-[10px] text-muted-foreground text-left p-1.5 w-24">Topic</th>
             {data.cols.map((col) => (
               <th key={col} className="text-[10px] text-muted-foreground p-1.5 text-center min-w-[40px]">
-                {new Date(col).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                {col ? new Date(col).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'}
               </th>
             ))}
           </tr>
@@ -87,7 +87,7 @@ export function CorroborationHeatmap({ data, loading, onCellClick }: Corroborati
           style={{ left: tooltipPos.x, top: tooltipPos.y }}
         >
           <div className="font-medium capitalize">{hoveredCell.topic ? hoveredCell.topic.replace(/_/g, ' ') : '—'}</div>
-          <div className="text-muted-foreground">{new Date(hoveredCell.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+          <div className="text-muted-foreground">{hoveredCell.date ? new Date(hoveredCell.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}</div>
           <div>Total: {hoveredData.count} articles</div>
           <div>High Corroboration: {hoveredData.high_corr_count}</div>
           <div>Avg Relevance: {hoveredData.avg_relevance?.toFixed(1) ?? '—'}</div>

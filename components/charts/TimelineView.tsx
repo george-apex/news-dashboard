@@ -38,7 +38,13 @@ export function TimelineView({ articles, loading, onLoadMore, hasMore }: Timelin
   }
 
   const grouped = articles.reduce<Record<string, Article[]>>((acc, article) => {
-    const day = format(parseISO(article.date), 'yyyy-MM-dd')
+    if (!article.date) return acc
+    let day: string
+    try {
+      day = format(parseISO(article.date), 'yyyy-MM-dd')
+    } catch {
+      day = 'Unknown'
+    }
     if (!acc[day]) acc[day] = []
     acc[day].push(article)
     return acc

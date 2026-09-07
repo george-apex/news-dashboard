@@ -21,11 +21,11 @@ export function SentimentTrendChart({ data, loading, topicFilter, onTopicChange 
   if (!data || data.data.length === 0) return <div className="flex items-center justify-center h-72 text-sm text-muted-foreground">No data</div>
 
   const chartData = data.data.map((d) => ({
-    date: new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-    sentiment: Number(d.avg_sentiment.toFixed(3)),
+    date: d.date ? new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—',
+    sentiment: Number((d.avg_sentiment ?? 0).toFixed(3)),
     articles: d.article_count,
-    positive: Math.max(Number(d.avg_sentiment.toFixed(3)), 0),
-    negative: Math.min(Number(d.avg_sentiment.toFixed(3)), 0),
+    positive: Math.max(Number((d.avg_sentiment ?? 0).toFixed(3)), 0),
+    negative: Math.min(Number((d.avg_sentiment ?? 0).toFixed(3)), 0),
   }))
 
   const handleTopicChange = (v: string) => {
