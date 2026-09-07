@@ -15,8 +15,7 @@ export function useApi<T>(path: string | null, refreshInterval?: number) {
     if (path.startsWith('http')) {
       url = path
     } else {
-      const base = typeof window !== 'undefined' ? window.location.origin : ''
-      url = `${base}/api${path}`
+      url = `/api${path}`
     }
   }
   return useSWR<T>(url, url ? fetcher : null, {

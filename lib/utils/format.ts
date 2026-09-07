@@ -1,21 +1,34 @@
-import { format, formatDistanceToNow, parseISO } from 'date-fns'
+import { format, formatDistanceToNow, parseISO, isValid } from 'date-fns'
 
-function toDate(value: string | number | Date): Date {
-  if (value instanceof Date) return value
-  if (typeof value === 'number') return new Date(value)
-  return parseISO(value)
+function toDate(value: string | number | Date | null | undefined): Date | null {
+  if (!value && value !== 0) return null
+  if (value instanceof Date) return isValid(value) ? value : null
+  if (typeof value === 'number') {
+    const d = new Date(value)
+    return isValid(d) ? d : null
+  }
+  if (typeof value === 'string' && value.trim() === '') return null
+  try {
+    const d = parseISO(value)
+    return isValid(d) ? d : null
+  } catch {
+    return null
+  }
 }
 
-export function formatDate(dateStr: string | number): string {
-  return format(toDate(dateStr), 'MMM d, yyyy')
+export function formatDate(dateStr: string | number | null | undefined): string {
+  const d = toDate(dateStr)
+  return d ? format(d, 'MMM d, yyyy') : '—'
 }
 
-export function formatDateTime(dateStr: string | number): string {
-  return format(toDate(dateStr), 'MMM d, yyyy HH:mm')
+export function formatDateTime(dateStr: string | number | null | undefined): string {
+  const d = toDate(dateStr)
+  return d ? format(d, 'MMM d, yyyy HH:mm') : '—'
 }
 
-export function formatTimeAgo(dateStr: string | number): string {
-  return formatDistanceToNow(toDate(dateStr), { addSuffix: true })
+export function formatTimeAgo(dateStr: string | number | null | undefined): string {
+  const d = toDate(dateStr)
+  return d ? formatDistanceToNow(d, { addSuffix: true }) : '—'
 }
 
 export function formatNumber(num: number): string {

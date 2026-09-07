@@ -7,8 +7,8 @@ import { cn } from '@/lib/utils'
 
 export function Footer() {
   const { sidebarOpen } = useUIStore()
-  const { data: sweepData } = useApi<{ sweeps: { started_at: string; status: string }[] }>('/api/sweeps?limit=1')
-  const { data: articleData } = useApi<{ total: number }>('/api/articles?limit=1')
+  const { data: sweepData } = useApi<{ sweeps: { started_at: string; status: string }[] }>('/sweeps?limit=1')
+  const { data: articleData } = useApi<{ total: number }>('/articles?limit=1')
 
   const lastSweep = sweepData?.sweeps?.[0]
   const lastSweepTime = lastSweep?.started_at
