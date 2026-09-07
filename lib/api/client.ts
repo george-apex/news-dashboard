@@ -1,7 +1,5 @@
 import useSWR, { mutate } from 'swr'
 
-const API_BASE = '/api'
-
 async function fetcher<T>(url: string): Promise<T> {
   const res = await fetch(url)
   if (!res.ok) {
@@ -12,7 +10,15 @@ async function fetcher<T>(url: string): Promise<T> {
 }
 
 export function useApi<T>(path: string | null, refreshInterval?: number) {
-  const url = path ? (path.startsWith('http') ? path : `${API_BASE}${path}`) : null
+  let url: string | null = null
+  if (path) {
+    if (path.startsWith('http')) {
+      url = path
+    } else {
+      const base = typeof window !== 'undefined' ? window.location.origin : ''
+      url = `${base}/api${path}`
+    }
+  }
   return useSWR<T>(url, url ? fetcher : null, {
     revalidateOnFocus: false,
     dedupingInterval: 10000,

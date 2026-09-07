@@ -1,15 +1,21 @@
 import { format, formatDistanceToNow, parseISO } from 'date-fns'
 
-export function formatDate(dateStr: string): string {
-  return format(parseISO(dateStr), 'MMM d, yyyy')
+function toDate(value: string | number | Date): Date {
+  if (value instanceof Date) return value
+  if (typeof value === 'number') return new Date(value)
+  return parseISO(value)
 }
 
-export function formatDateTime(dateStr: string): string {
-  return format(parseISO(dateStr), 'MMM d, yyyy HH:mm')
+export function formatDate(dateStr: string | number): string {
+  return format(toDate(dateStr), 'MMM d, yyyy')
 }
 
-export function formatTimeAgo(dateStr: string): string {
-  return formatDistanceToNow(parseISO(dateStr), { addSuffix: true })
+export function formatDateTime(dateStr: string | number): string {
+  return format(toDate(dateStr), 'MMM d, yyyy HH:mm')
+}
+
+export function formatTimeAgo(dateStr: string | number): string {
+  return formatDistanceToNow(toDate(dateStr), { addSuffix: true })
 }
 
 export function formatNumber(num: number): string {
