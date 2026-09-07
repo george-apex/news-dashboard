@@ -34,7 +34,7 @@ export function TrendingStoryCard({ article }: { article: Article }) {
             color: getCorroborationColor(article.corroboration_score),
           }}
         >
-          {article.corroboration_score.toUpperCase()}
+          {typeof article.corroboration_score === 'string' ? article.corroboration_score.toUpperCase() : typeof article.corroboration_score === 'number' ? (article.corroboration_score >= 0.7 ? 'HIGH' : article.corroboration_score >= 0.4 ? 'MED' : 'LOW') : '—'}
         </Badge>
         <SentimentDot score={article.sentiment_score} />
         <span className="text-[10px] text-muted-foreground tabular-nums">{article.relevance_score}</span>

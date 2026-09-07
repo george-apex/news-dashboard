@@ -26,7 +26,7 @@ export interface Article {
   source: string
   source_type: SourceType
   relevance_score: number
-  corroboration_score: CorroborationLevel
+  corroboration_score: CorroborationLevel | number
   source_count: number
   sentiment_score: number
   entities: Entity[]

@@ -28,7 +28,7 @@ export function SweepHistoryTable({ sweeps, onRowClick }: { sweeps: SweepRecord[
               completed: { icon: CheckCircle, color: '#10b981', animate: false },
               failed: { icon: XCircle, color: '#ef4444', animate: false },
             }
-            const config = statusConfig[sweep.status]
+            const config = statusConfig[sweep.status as keyof typeof statusConfig] ?? statusConfig.running
             const Icon = config.icon
 
             return (
@@ -49,7 +49,7 @@ export function SweepHistoryTable({ sweeps, onRowClick }: { sweeps: SweepRecord[
                     </Badge>
                   </div>
                 </td>
-                <td className="p-2 text-muted-foreground">{sweep.topics.length} topics</td>
+                <td className="p-2 text-muted-foreground">{sweep.topics?.length ?? 0} topics</td>
                 <td className="p-2 text-foreground tabular-nums">{sweep.article_count}</td>
                 <td className="p-2">{sweep.pdf_report_url ? <FileText className="h-3.5 w-3.5 text-primary" /> : '—'}</td>
                 <td className="p-2">{sweep.linkedin_post ? <LinkedInIcon className="h-3.5 w-3.5 text-[#0A66C2]" /> : '—'}</td>

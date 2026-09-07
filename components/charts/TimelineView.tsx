@@ -84,7 +84,7 @@ export function TimelineView({ articles, loading, onLoadMore, hasMore }: Timelin
                       color: getCorroborationColor(article.corroboration_score),
                     }}
                   >
-                    {article.corroboration_score.toUpperCase()}
+                    {typeof article.corroboration_score === 'string' ? article.corroboration_score.toUpperCase() : typeof article.corroboration_score === 'number' ? (article.corroboration_score >= 0.7 ? 'HIGH' : article.corroboration_score >= 0.4 ? 'MED' : 'LOW') : '—'}
                   </Badge>
                 </div>
                 <div className="mt-1 flex items-center gap-2">

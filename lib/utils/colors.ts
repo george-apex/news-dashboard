@@ -24,11 +24,13 @@ export function getSentimentColor(score: number): string {
   return '#f59e0b'
 }
 
-export function getCorroborationColor(level: CorroborationLevel): string {
-  switch (level) {
+export function getCorroborationColor(level: CorroborationLevel | number): string {
+  const l = typeof level === 'number' ? (level >= 0.7 ? 'high' : level >= 0.4 ? 'medium' : 'low') : level
+  switch (l) {
     case 'high': return '#10b981'
     case 'medium': return '#f59e0b'
     case 'low': return '#6b7280'
+    default: return '#6b7280'
   }
 }
 

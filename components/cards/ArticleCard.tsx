@@ -60,7 +60,12 @@ export function ArticleCard({ article }: { article: Article }) {
             color: getCorroborationColor(article.corroboration_score),
           }}
         >
-          {CORROBORATION_LABELS[article.corroboration_score]}
+          {(() => {
+            const cs = article.corroboration_score
+            if (typeof cs === 'string') return CORROBORATION_LABELS[cs] ?? cs.toUpperCase()
+            if (typeof cs === 'number') return cs >= 0.7 ? 'HIGH' : cs >= 0.4 ? 'MED' : 'LOW'
+            return '—'
+          })()}
           {article.source_count > 0 && ` (${article.source_count})`}
         </Badge>
       </div>
