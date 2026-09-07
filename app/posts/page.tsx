@@ -97,11 +97,11 @@ export default function PostsPage() {
                     </div>
                     <div>
                       <div className="text-sm font-semibold text-foreground">News Intelligence</div>
-                      <div className="text-[10px] text-muted-foreground">{formatTimeAgo(selectedPost.created_at)}</div>
+                      <div className="text-[10px] text-muted-foreground">{formatTimeAgo(selectedPost.created_at ?? '')}</div>
                     </div>
                   </div>
                   <div className="text-xs text-foreground leading-relaxed whitespace-pre-wrap mb-3">
-                    {selectedPost.content.split(/(#[\w]+)/g).map((part, i) =>
+                    {(selectedPost.content ?? '').split(/(#[\w]+)/g).map((part, i) =>
                       part.startsWith('#') ? (
                         <span key={i} className="text-primary font-medium">{part}</span>
                       ) : (

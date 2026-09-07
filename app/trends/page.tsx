@@ -93,11 +93,11 @@ export default function TrendsPage() {
                       <div key={d.topic} className="grid grid-cols-5 gap-2 text-xs px-2 py-1.5 rounded hover:bg-muted/50">
                         <span className="flex items-center gap-1.5">
                           <span className="h-2 w-2 rounded-full" style={{ backgroundColor: TOPIC_COLORS[d.topic] }} />
-                          {d.topic.replace(/_/g, ' ')}
+                          {d.topic ? d.topic.replace(/_/g, ' ') : '—'}
                         </span>
                         <span className="tabular-nums">{d.count}</span>
                         <span className="tabular-nums">{total > 0 ? ((d.count / total) * 100).toFixed(1) : 0}%</span>
-                        <span className="tabular-nums">{d.avg_sentiment.toFixed(2)}</span>
+                        <span className="tabular-nums">{d.avg_sentiment?.toFixed(2) ?? '—'}</span>
                         <span className="tabular-nums">—</span>
                       </div>
                     )

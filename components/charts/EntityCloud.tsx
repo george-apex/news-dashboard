@@ -32,7 +32,7 @@ export function EntityCloud({ data, loading, onEntityClick }: EntityCloudProps) 
               lineHeight: 1.2,
             }}
             onClick={() => onEntityClick?.(entity.name)}
-            title={`${entity.name} · ${entity.mention_count} mentions · ${entity.avg_sentiment.toFixed(2)} sentiment`}
+            title={`${entity.name} · ${entity.mention_count} mentions · ${(entity.avg_sentiment ?? 0).toFixed(2)} sentiment`}
           >
             {entity.name}
           </button>

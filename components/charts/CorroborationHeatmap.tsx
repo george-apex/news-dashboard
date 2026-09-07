@@ -43,7 +43,7 @@ export function CorroborationHeatmap({ data, loading, onCellClick }: Corroborati
           {data.rows.map((topic) => (
             <tr key={topic}>
               <td className="text-[10px] text-foreground p-1.5 font-medium capitalize">
-                {topic.replace(/_/g, ' ')}
+                {topic ? topic.replace(/_/g, ' ') : '—'}
               </td>
               {data.cols.map((date) => {
                 const cell = data.cells[topic]?.[date]
@@ -86,7 +86,7 @@ export function CorroborationHeatmap({ data, loading, onCellClick }: Corroborati
           className="absolute bg-card border border-border rounded-lg px-3 py-2 text-xs shadow-lg pointer-events-none z-20"
           style={{ left: tooltipPos.x, top: tooltipPos.y }}
         >
-          <div className="font-medium capitalize">{hoveredCell.topic.replace(/_/g, ' ')}</div>
+          <div className="font-medium capitalize">{hoveredCell.topic ? hoveredCell.topic.replace(/_/g, ' ') : '—'}</div>
           <div className="text-muted-foreground">{new Date(hoveredCell.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
           <div>Total: {hoveredData.count} articles</div>
           <div>High Corroboration: {hoveredData.high_corr_count}</div>

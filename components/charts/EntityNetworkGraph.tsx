@@ -245,7 +245,7 @@ export function EntityNetworkGraph({ data, entities, loading, onEntityClick }: E
         <div className="absolute bg-card border border-border rounded-lg px-3 py-2 text-xs shadow-lg pointer-events-none z-20" style={{ marginTop: -320 }}>
           <div className="font-medium">{hoveredEntity.name}</div>
           <div className="text-muted-foreground capitalize">{hoveredEntity.type} · {hoveredEntity.mention_count} mentions</div>
-          <div className="text-muted-foreground">Sentiment: {hoveredEntity.avg_sentiment.toFixed(2)} · {hoveredEntity.trend_direction}</div>
+          <div className="text-muted-foreground">Sentiment: {(hoveredEntity.avg_sentiment ?? 0).toFixed(2)} · {hoveredEntity.trend_direction ?? '—'}</div>
         </div>
       )}
       <div className="flex items-center gap-4 mt-2 px-2">

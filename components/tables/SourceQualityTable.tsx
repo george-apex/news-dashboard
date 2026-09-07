@@ -23,8 +23,8 @@ export function SourceQualityTable({ data }: { data?: SourceQualityResponse }) {
               <td className="p-2 text-foreground font-medium">{source.source}</td>
               <td className="p-2 text-muted-foreground">{source.source_type}</td>
               <td className="p-2 text-foreground tabular-nums">{source.total_articles}</td>
-              <td className="p-2 tabular-nums">{source.avg_relevance.toFixed(1)}</td>
-              <td className="p-2 tabular-nums">{source.avg_sentiment.toFixed(2)}</td>
+              <td className="p-2 tabular-nums">{(source.avg_relevance ?? 0).toFixed(1)}</td>
+              <td className="p-2 tabular-nums">{(source.avg_sentiment ?? 0).toFixed(2)}</td>
             </tr>
           ))}
         </tbody>

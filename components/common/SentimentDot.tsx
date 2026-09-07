@@ -7,7 +7,7 @@ export function SentimentDot({ score, size = 'sm' }: { score: number; size?: 'sm
     <span
       className={`inline-block rounded-full ${sizeClass} shrink-0`}
       style={{ backgroundColor: color }}
-      title={`Sentiment: ${score.toFixed(2)}`}
+      title={`Sentiment: ${(score ?? 0).toFixed(2)}`}
     />
   )
 }

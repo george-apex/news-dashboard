@@ -29,7 +29,7 @@ export function EntityTable({ entities }: { entities: EntityStat[] }) {
               <td className="p-2">
                 <div className="flex items-center gap-1.5">
                   <SentimentDot score={entity.avg_sentiment} />
-                  <span className="tabular-nums">{entity.avg_sentiment.toFixed(2)}</span>
+                  <span className="tabular-nums">{(entity.avg_sentiment ?? 0).toFixed(2)}</span>
                 </div>
               </td>
               <td className="p-2 text-muted-foreground">{entity.topics.length} topics</td>
