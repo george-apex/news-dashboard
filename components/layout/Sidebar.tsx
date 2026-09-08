@@ -44,8 +44,8 @@ function SidebarCounts() {
     total: articlesData?.total,
     articles: articlesData?.total,
     entities: entitiesData?.entities?.length,
-    sweeps: sweepsData?.sweeps?.filter((s) => s.status === 'running').length,
-    posts: postsData?.posts?.filter((p) => p.status === 'draft').length,
+    sweeps: sweepsData?.sweeps?.filter((s) => s.status === 'running')?.length ?? 0,
+    posts: postsData?.posts?.filter((p) => p.status === 'draft')?.length ?? 0,
     market: marketData?.stocks?.length,
   }
 
