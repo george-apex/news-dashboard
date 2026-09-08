@@ -79,6 +79,9 @@ export interface LinkedInPost {
   angle: string
   created_at: string
   status: 'draft' | 'published'
+  source_article_url: string
+  source_article_title: string
+  source_article_id: string
 }
 
 export interface ArticlesResponse {

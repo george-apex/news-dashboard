@@ -16,14 +16,13 @@ export async function GET(request: NextRequest) {
     const toMs = dateTo ? new Date(dateTo).getTime() : now
 
     const cols: string[] = []
-    const cells: Record<string, Record<string, { count: number; high_corr_count: number; avg_relevance: number }>> = {}
-
     const start = new Date(fromMs)
     const end = new Date(toMs)
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
       cols.push(d.toISOString().split('T')[0])
     }
 
+    const cells: Record<string, Record<string, { count: number; high_corr_count: number; avg_relevance: number }>> = {}
     for (const topic of TOPICS) {
       cells[topic] = {}
       for (const col of cols) {
@@ -31,78 +30,27 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const startSec = Math.floor(fromMs / 1000)
-    const endSec = Math.ceil(toMs / 1000)
+    const heatmapData = await redis.hgetall<Record<string, string>>('nid:heatmap:corroboration')
 
-    for (const topic of TOPICS) {
-      const trendKey = keys.trendTopicDaily(topic)
-      const exists = await redis.exists(trendKey)
+    if (heatmapData && Object.keys(heatmapData).length > 0) {
+      for (const [field, value] of Object.entries(heatmapData)) {
+        const sepIdx = field.lastIndexOf(':')
+        if (sepIdx === -1) continue
+        const topic = field.substring(0, sepIdx)
+        const date = field.substring(sepIdx + 1)
+        const count = Number(value) || 0
 
-      if (exists) {
-        const rawItems = await redis.zrange(trendKey, startSec, endSec) as string[]
-
-        for (const item of rawItems) {
-          try {
-            const parsed = JSON.parse(item)
-            const date = parsed.date || ''
-            if (!date) continue
-            const highCorr = Number(parsed.high_corr_count || parsed.high_corroboration_count || 0)
-            if (!cells[topic]) cells[topic] = {}
-            cells[topic][date] = {
-              count: Number(parsed.count || parsed.article_count || 0),
-              high_corr_count: highCorr,
-              avg_relevance: Number(parsed.avg_relevance || 0),
-            }
-          } catch {}
-        }
-      } else {
-        const articleIds = await redis.smembers(keys.articlesByTopic(topic)) as string[]
-        if (articleIds.length > 0) {
-          const batchSize = 50
-          for (let i = 0; i < articleIds.length; i += batchSize) {
-            const batch = articleIds.slice(i, i + batchSize)
-            const pipeline = redis.pipeline()
-            for (const id of batch) {
-              pipeline.hgetall(keys.article(id))
-            }
-            const results = await pipeline.exec<Record<string, string>[]>()
-            for (const data of results) {
-              if (!data || !data.date) continue
-              const day = new Date(data.date).toISOString().split('T')[0]
-              if (!cols.includes(day)) continue
-              const corrScore = String(data.corroboration_score || '').toLowerCase()
-              const topicKey = data.topic as Topic
-              if (!cells[topicKey]) cells[topicKey] = {}
-              if (!cells[topicKey][day]) cells[topicKey][day] = { count: 0, high_corr_count: 0, avg_relevance: 0 }
-              cells[topicKey][day].count++
-              if (corrScore === 'high') cells[topicKey][day].high_corr_count++
-              cells[topicKey][day].avg_relevance += Number(data.relevance_score || 0)
-            }
-          }
-          for (const topic of TOPICS) {
-            for (const col of cols) {
-              const cell = cells[topic]?.[col]
-              if (cell && cell.count > 0) {
-                cell.avg_relevance = Number((cell.avg_relevance / cell.count).toFixed(2))
-              }
-            }
-          }
-        }
+        if (!cells[topic]) cells[topic] = {}
+        if (!cols.includes(date)) continue
+        if (!cells[topic][date]) cells[topic][date] = { count: 0, high_corr_count: 0, avg_relevance: 0 }
+        cells[topic][date].high_corr_count = count
+        cells[topic][date].count = Math.max(cells[topic][date].count, count)
       }
     }
 
     const rows = TOPICS.filter((t) =>
       cols.some((col) => cells[t]?.[col] && (cells[t][col].count > 0 || cells[t][col].high_corr_count > 0))
     )
-    if (rows.length === 0) {
-      for (const topic of TOPICS) {
-        let hasData = false
-        for (const col of cols) {
-          if (cells[topic]?.[col]?.count > 0) { hasData = true; break }
-        }
-        if (hasData) rows.push(topic)
-      }
-    }
 
     return NextResponse.json({ rows: rows.length > 0 ? rows : TOPICS, cols, cells })
   } catch (error) {

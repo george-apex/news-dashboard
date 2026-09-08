@@ -63,6 +63,17 @@ export function LinkedInPostCard({
           <span className="text-[10px] text-muted-foreground ml-auto">{formatTimeAgo(post.created_at)}</span>
         </div>
         <p className="text-xs text-foreground line-clamp-3 leading-relaxed whitespace-pre-line">{post.content}</p>
+        {post.source_article_url && (
+          <a
+            href={post.source_article_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block mt-1.5 text-[10px] text-primary hover:underline truncate"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {post.source_article_title || post.source_article_url}
+          </a>
+        )}
         <div className="flex items-center justify-between mt-2">
           <span className="text-[10px] text-muted-foreground capitalize">{post.status}</span>
           <div className="flex items-center gap-1">

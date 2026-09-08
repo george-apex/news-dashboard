@@ -38,6 +38,9 @@ export async function GET(request: NextRequest) {
         angle: d.angle || '',
         created_at: d.created_at,
         status: d.status as LinkedInPost['status'],
+        source_article_url: d.source_article_url || '',
+        source_article_title: d.source_article_title || '',
+        source_article_id: d.source_article_id || '',
       }))
 
     return NextResponse.json({ posts })
