@@ -1,6 +1,60 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getRedisClient, keys } from '@/lib/redis'
-import { SweepRecord } from '@/types'
+import { SweepRecord, PipelineStageInfo, StageStatus } from '@/types'
+
+function computeDuration(start: string | null | undefined, end: string | null | undefined): number | null {
+  if (!start || !end) return null
+  try {
+    const ms = new Date(end).getTime() - new Date(start).getTime()
+    return ms > 0 ? ms : null
+  } catch {
+    return null
+  }
+}
+
+function buildPipelineStages(data: Record<string, string>, articleCount: number): PipelineStageInfo[] {
+  const newsStatus = (data.news_status as StageStatus) || 'pending'
+  const marketDataStatus = (data.market_data_status as StageStatus) || 'pending'
+  const corroborationStatus = (data.corroboration_status as StageStatus) || 'pending'
+  const contentStatus = (data.content_status as StageStatus) || 'pending'
+
+  const stages: PipelineStageInfo[] = [
+    {
+      label: 'News',
+      status: newsStatus,
+      started_at: data.news_started_at || null,
+      completed_at: data.news_completed_at || null,
+      duration_ms: computeDuration(data.news_started_at, data.news_completed_at),
+      detail: newsStatus === 'completed' ? `${articleCount} articles` : newsStatus === 'failed' ? (data.error || 'Failed') : null,
+    },
+    {
+      label: 'Market Data',
+      status: marketDataStatus,
+      started_at: data.market_data_started_at || null,
+      completed_at: data.market_data_completed_at || null,
+      duration_ms: computeDuration(data.market_data_started_at, data.market_data_completed_at),
+      detail: marketDataStatus === 'failed' ? (data.error || 'Failed') : marketDataStatus === 'skipped' ? 'Skipped' : null,
+    },
+    {
+      label: 'Corroboration',
+      status: corroborationStatus,
+      started_at: null,
+      completed_at: data.corroboration_completed_at || null,
+      duration_ms: null,
+      detail: corroborationStatus === 'failed' ? (data.error || 'Failed') : corroborationStatus === 'skipped' ? 'Skipped' : null,
+    },
+    {
+      label: 'Content',
+      status: contentStatus,
+      started_at: data.content_started_at || null,
+      completed_at: data.content_completed_at || null,
+      duration_ms: computeDuration(data.content_started_at, data.content_completed_at),
+      detail: contentStatus === 'failed' ? (data.error || 'Failed') : contentStatus === 'skipped' ? 'Skipped' : null,
+    },
+  ]
+
+  return stages
+}
 
 export async function GET(
   request: NextRequest,
@@ -17,17 +71,33 @@ export async function GET(
 
     const zScores = await redis.zscore(keys.sweepsByDate(), id).catch(() => null)
 
-    const sweep: SweepRecord & { is_stale?: boolean } = {
+    const articleCount = Number(data.article_count || data.total_articles || 0)
+    const pipelineStages = buildPipelineStages(data, articleCount)
+
+    const sweep: SweepRecord = {
       id: data.id,
       started_at: data.started_at || (zScores ? new Date(Number(zScores) * 1000).toISOString() : ''),
       completed_at: data.completed_at || null,
       status: data.status as SweepRecord['status'],
       topics: typeof data.topics === 'string' ? JSON.parse(data.topics) : [],
-      article_count: Number(data.article_count || data.total_articles || 0),
+      article_count: articleCount,
       error: data.error || null,
       triggered_by: (data.triggered_by || 'manual') as SweepRecord['triggered_by'],
       pdf_report_url: data.pdf_report_url || null,
       linkedin_post: data.linkedin_post || null,
+      pipeline_stage: data.pipeline_stage as SweepRecord['pipeline_stage'],
+      news_status: data.news_status as StageStatus,
+      news_started_at: data.news_started_at || null,
+      news_completed_at: data.news_completed_at || null,
+      market_data_status: data.market_data_status as StageStatus,
+      market_data_started_at: data.market_data_started_at || null,
+      market_data_completed_at: data.market_data_completed_at || null,
+      corroboration_status: data.corroboration_status as StageStatus,
+      corroboration_completed_at: data.corroboration_completed_at || null,
+      content_status: data.content_status as StageStatus,
+      content_started_at: data.content_started_at || null,
+      content_completed_at: data.content_completed_at || null,
+      pipeline_stages: pipelineStages,
     }
 
     if (sweep.status === 'running' && sweep.started_at) {

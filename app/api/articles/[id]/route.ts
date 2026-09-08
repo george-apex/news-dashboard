@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getRedisClient, keys } from '@/lib/redis'
-import { Topic, Article } from '@/types'
+import { Topic, Article, MarketDataStock, MacroIndicators, MarketContext } from '@/types'
 
 export async function GET(
   request: NextRequest,
@@ -33,7 +33,48 @@ export async function GET(
       sweep_id: data.sweep_id,
     }
 
-    return NextResponse.json(article)
+    let marketContext: MarketContext | null = null
+
+    const entityNames = article.entities.map((e) => e.name)
+    if (entityNames.length > 0) {
+      const stockPromises = entityNames.map((name) =>
+        redis.hgetall<Record<string, string>>(keys.marketdataEntity(name))
+      )
+      const [macroRaw, ...stockResults] = await Promise.all([
+        redis.hgetall<Record<string, string>>(keys.marketdataMacro()),
+        ...stockPromises,
+      ])
+
+      const stocks: MarketDataStock[] = []
+      for (const sd of stockResults) {
+        if (sd && Object.keys(sd).length > 0) {
+          stocks.push({
+            entity_name: sd.entity_name || '',
+            ticker: sd.ticker || '',
+            latest_price: sd.latest_price || '0',
+            price_change_pct: sd.price_change_pct || '0',
+            price_change_direction: (sd.price_change_direction as MarketDataStock['price_change_direction']) || 'flat',
+            updated_at: sd.updated_at || '',
+          })
+        }
+      }
+
+      let macro: MacroIndicators | null = null
+      if (macroRaw && Object.keys(macroRaw).length > 0) {
+        macro = {
+          dgs10: macroRaw.dgs10 || '0',
+          vix: macroRaw.vix || '0',
+          fedfunds: macroRaw.fedfunds || '0',
+          updated_at: macroRaw.updated_at || '',
+        }
+      }
+
+      if (stocks.length > 0) {
+        marketContext = { stocks, macro }
+      }
+    }
+
+    return NextResponse.json({ ...article, market_context: marketContext })
   } catch (error) {
     console.error('GET /api/articles/[id] error:', error)
     return NextResponse.json({ error: 'Failed to fetch article' }, { status: 500 })

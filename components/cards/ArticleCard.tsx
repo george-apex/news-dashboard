@@ -1,7 +1,7 @@
 'use client'
 
-import { ExternalLink, ChevronDown, ChevronUp } from 'lucide-react'
-import { Article, CorroborationLevel } from '@/types'
+import { ExternalLink, ChevronDown, ChevronUp, TrendingUp, TrendingDown, Minus, Activity } from 'lucide-react'
+import { Article, CorroborationLevel, MarketDataStock, MacroIndicators } from '@/types'
 import { SentimentDot } from '@/components/common/SentimentDot'
 import { RelevanceBar } from '@/components/common/RelevanceBar'
 import { TopicBadge } from '@/components/common/TopicBadge'
@@ -9,13 +9,68 @@ import { SourceBadge } from '@/components/common/SourceBadge'
 import { Badge } from '@/components/common/Badge'
 import { getCorroborationColor } from '@/lib/utils/colors'
 import { formatTimeAgo } from '@/lib/utils/format'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useApi } from '@/lib/api/client'
 
 const CORROBORATION_LABELS: Record<CorroborationLevel, string> = {
   high: 'HIGH',
   medium: 'MED',
   low: 'LOW',
+}
+
+function DirectionIcon({ direction }: { direction: string }) {
+  if (direction === 'up') return <TrendingUp className="h-3 w-3 text-emerald-500" />
+  if (direction === 'down') return <TrendingDown className="h-3 w-3 text-red-500" />
+  return <Minus className="h-3 w-3 text-gray-400" />
+}
+
+function MarketContextPanel({ articleId }: { articleId: string }) {
+  const { data, isLoading } = useApi<{
+    id: string
+    market_context: {
+      stocks: MarketDataStock[]
+      macro: MacroIndicators | null
+    } | null
+  } | null>(`/articles/${articleId}`)
+
+  if (isLoading) {
+    return <div className="h-8 bg-muted animate-pulse rounded mt-2" />
+  }
+
+  const context = data?.market_context
+  if (!context || context.stocks.length === 0) return null
+
+  return (
+    <div className="mt-2 pt-2 border-t border-border/50">
+      <div className="text-[10px] text-muted-foreground font-medium mb-1.5 flex items-center gap-1">
+        <Activity className="h-3 w-3" /> Market Context
+      </div>
+      <div className="flex flex-wrap gap-x-4 gap-y-1">
+        {context.stocks.map((stock) => {
+          const change = parseFloat(stock.price_change_pct) || 0
+          const price = parseFloat(stock.latest_price) || 0
+          return (
+            <div key={stock.entity_name} className="flex items-center gap-1.5 text-[10px]">
+              <span className="font-medium">{stock.ticker || stock.entity_name}</span>
+              <span className="text-muted-foreground">${price.toFixed(2)}</span>
+              <span className={change >= 0 ? 'text-emerald-600' : 'text-red-600'}>
+                {change >= 0 ? '+' : ''}{change.toFixed(2)}%
+              </span>
+              <DirectionIcon direction={stock.price_change_direction} />
+            </div>
+          )
+        })}
+      </div>
+      {context.macro && (
+        <div className="flex items-center gap-3 mt-1.5 text-[10px] text-muted-foreground">
+          <span>VIX: <span className={parseFloat(context.macro.vix) < 20 ? 'text-emerald-600' : parseFloat(context.macro.vix) > 30 ? 'text-red-600' : 'text-amber-600'}>{context.macro.vix}</span></span>
+          <span>10Y: {context.macro.dgs10}%</span>
+          <span>Fed: {context.macro.fedfunds}%</span>
+        </div>
+      )}
+    </div>
+  )
 }
 
 export function ArticleCard({ article }: { article: Article }) {
@@ -87,12 +142,19 @@ export function ArticleCard({ article }: { article: Article }) {
             className="text-[10px] text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
           >
             {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-            {expanded ? 'Hide summary' : 'Show summary'}
+            {expanded ? 'Hide details' : 'Show details'}
           </button>
           {expanded && (
-            <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
-              {article.summary}
-            </p>
+            <>
+              {article.summary && (
+                <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+                  {article.summary}
+                </p>
+              )}
+              {article.entities.length > 0 && (
+                <MarketContextPanel articleId={article.id} />
+              )}
+            </>
           )}
         </div>
       )}

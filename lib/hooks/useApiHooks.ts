@@ -1,5 +1,5 @@
 import { useApi } from '@/lib/api/client'
-import { ArticlesResponse, ArticlesQueryParams, TopicStatsResponse, EntitiesResponse, TrendingEntitiesResponse, SentimentTrendResponse, TopicDistributionResponse, SourcesResponse, SweepsResponse, SweepRecord, LinkedInPostsResponse, LinkedInPost, HeatmapResponse, SourceQualityResponse, CoOccurrenceResponse } from '@/types'
+import { ArticlesResponse, ArticlesQueryParams, TopicStatsResponse, EntitiesResponse, TrendingEntitiesResponse, SentimentTrendResponse, TopicDistributionResponse, SourcesResponse, SweepsResponse, SweepRecord, LinkedInPostsResponse, LinkedInPost, HeatmapResponse, SourceQualityResponse, CoOccurrenceResponse, MarketDataResponse, MarketDataStock } from '@/types'
 
 function buildQuery(params: ArticlesQueryParams): string {
   const searchParams = new URLSearchParams()
@@ -30,7 +30,7 @@ export function useArticle(id: string | null) {
 }
 
 export function useTopicStats() {
-  return useApi<TopicStatsResponse>('/topics/stats', 60000)
+  return useApi<TopicStatsResponse>('/topics/stats', 300000)
 }
 
 export function useEntities(type?: string, topic?: string, sort?: string, limit?: number) {
@@ -40,11 +40,11 @@ export function useEntities(type?: string, topic?: string, sort?: string, limit?
   if (sort) params.set('sort', sort)
   if (limit) params.set('limit', String(limit))
   const qs = params.toString()
-  return useApi<EntitiesResponse>(`/entities${qs ? `?${qs}` : ''}`, 60000)
+  return useApi<EntitiesResponse>(`/entities${qs ? `?${qs}` : ''}`, 120000)
 }
 
 export function useTrendingEntities() {
-  return useApi<TrendingEntitiesResponse>('/entities/trending', 60000)
+  return useApi<TrendingEntitiesResponse>('/entities/trending', 120000)
 }
 
 export function useCoOccurrence() {
@@ -57,20 +57,19 @@ export function useSentimentTrend(topic?: string, dateFrom?: string, dateTo?: st
   if (dateFrom) params.set('date_from', dateFrom)
   if (dateTo) params.set('date_to', dateTo)
   const qs = params.toString()
-  return useApi<SentimentTrendResponse>(`/trends/sentiment${qs ? `?${qs}` : ''}`, 60000)
+  return useApi<SentimentTrendResponse>(`/trends/sentiment${qs ? `?${qs}` : ''}`, 300000)
 }
 
 export function useTopicDistribution() {
-  return useApi<TopicDistributionResponse>('/trends/topic-distribution', 60000)
+  return useApi<TopicDistributionResponse>('/trends/topic-distribution', 300000)
 }
 
 export function useSources() {
-  return useApi<SourcesResponse>('/trends/sources', 60000)
+  return useApi<SourcesResponse>('/trends/sources', 300000)
 }
 
 export function useSweeps(page = 1, limit = 20) {
-  return useApi<SweepsResponse>(`/sweeps?page=${page}&limit=${limit}`, 60000)
-}
+  return useApi<SweepsResponse>(`/sweeps?page=${page}&limit=${limit}`, 60000)}
 
 export function useSweep(id: string | null, isRunning = false) {
   return useApi<SweepRecord>(id ? `/sweeps/${id}` : null, id && isRunning ? 5000 : 60000)
@@ -80,7 +79,7 @@ export function useLinkedInPosts(sweepId?: string, limit = 20) {
   const params = new URLSearchParams()
   if (sweepId) params.set('sweep_id', sweepId)
   params.set('limit', String(limit))
-  return useApi<LinkedInPostsResponse>(`/linkedin?${params.toString()}`, 60000)
+  return useApi<LinkedInPostsResponse>(`/linkedin?${params.toString()}`, 300000)
 }
 
 export function useLinkedInPost(id: string | null) {
@@ -92,9 +91,17 @@ export function useCorroborationHeatmap(dateFrom?: string, dateTo?: string) {
   if (dateFrom) params.set('date_from', dateFrom)
   if (dateTo) params.set('date_to', dateTo)
   const qs = params.toString()
-  return useApi<HeatmapResponse>(`/heatmap/corroboration${qs ? `?${qs}` : ''}`, 60000)
+  return useApi<HeatmapResponse>(`/heatmap/corroboration${qs ? `?${qs}` : ''}`, 300000)
 }
 
 export function useSourceQuality() {
-  return useApi<SourceQualityResponse>('/sources/quality', 60000)
+  return useApi<SourceQualityResponse>('/sources/quality', 300000)
+}
+
+export function useMarketData() {
+  return useApi<MarketDataResponse>('/marketdata', 300000)
+}
+
+export function useMarketDataEntity(entity: string | null) {
+  return useApi<MarketDataStock>(entity ? `/marketdata/${entity}` : null, 300000)
 }

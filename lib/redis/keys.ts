@@ -28,4 +28,8 @@ export const keys = {
   linkedinBySweep: (sweepId: string) => `nid:linkedin:sweep:${sweepId}`,
   sourceQuality: (source: string) => `nid:source:quality:${source}`,
   sourcesByQuality: () => 'nid:sources:by_quality',
+  marketdataEntity: (name: string) => `nid:marketdata:${name}`,
+  marketdataByEntity: () => 'nid:marketdata:by_entity',
+  marketdataSweep: (sweepId: string) => `nid:marketdata:sweep:${sweepId}`,
+  marketdataMacro: () => 'nid:marketdata:macro',
 }

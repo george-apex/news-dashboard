@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
-import { useLinkedInPosts } from '@/lib/hooks/useApiHooks'
-import { LinkedInPost } from '@/types'
+import { useState, useEffect } from 'react'
+import { useLinkedInPosts, useMarketData } from '@/lib/hooks/useApiHooks'
+import { LinkedInPost, MarketDataStock } from '@/types'
 import { LinkedInPostCard } from '@/components/cards/LinkedInPostCard'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -14,10 +14,25 @@ import { ErrorState } from '@/components/common/ErrorState'
 
 export default function PostsPage() {
   const [selectedPost, setSelectedPost] = useState<LinkedInPost | null>(null)
+  const [copied, setCopied] = useState(false)
   const { data: postsData, isLoading, error: postsError } = useLinkedInPosts()
+  const { data: marketData } = useMarketData()
 
   const handleCopy = async (content: string) => {
     await navigator.clipboard.writeText(content)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  const getMarketDataForPost = (post: LinkedInPost): MarketDataStock[] => {
+    if (!marketData?.stocks || !post.content) return []
+    const entityNames = marketData.stocks.map((s) => s.entity_name.toLowerCase())
+    return marketData.stocks.filter((stock) => {
+      const name = stock.entity_name.toLowerCase()
+      const ticker = stock.ticker.toLowerCase()
+      const content = post.content.toLowerCase()
+      return content.includes(name) || content.includes(ticker) || content.includes(`$${stock.ticker}`)
+    })
   }
 
   const handleExportPdf = async () => {
@@ -80,7 +95,7 @@ export default function PostsPage() {
                   <div className="flex items-center gap-2">
                     <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => handleCopy(selectedPost.content)}>
                       <Copy className="h-3 w-3" />
-                      Copy
+                      {copied ? 'Copied!' : 'Copy'}
                     </Button>
                     <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={handleExportPdf}>
                       <FileText className="h-3 w-3" />
@@ -137,6 +152,30 @@ export default function PostsPage() {
                     </>
                   )}
                 </div>
+
+                {(() => {
+                  const postMarketData = getMarketDataForPost(selectedPost)
+                  return postMarketData.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-border">
+                      <div className="text-[10px] text-muted-foreground mb-1">Market Data Referenced</div>
+                      <div className="flex flex-wrap gap-x-3 gap-y-1">
+                        {postMarketData.map((stock) => {
+                          const change = parseFloat(stock.price_change_pct) || 0
+                          const price = parseFloat(stock.latest_price) || 0
+                          return (
+                            <span key={stock.entity_name} className="text-[10px]">
+                              <span className="font-medium">{stock.ticker || stock.entity_name}</span>{' '}
+                              <span className="text-muted-foreground">${price.toFixed(2)}</span>{' '}
+                              <span className={change >= 0 ? 'text-emerald-600' : 'text-red-600'}>
+                                ({change >= 0 ? '+' : ''}{change.toFixed(1)}%)
+                              </span>
+                            </span>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )
+                })()}
 
                 {selectedPost.source_article_url && (
                   <div className="mt-3 pt-3 border-t border-border">

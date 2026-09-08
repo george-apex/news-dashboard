@@ -36,6 +36,19 @@ export interface Article {
   sweep_id: string
 }
 
+export type PipelineStage = 'news_fetching' | 'news_completed' | 'market_data_fetching' | 'market_data_completed' | 'corroborating' | 'content_generating' | 'completed' | 'failed'
+
+export type StageStatus = 'pending' | 'running' | 'completed' | 'failed' | 'skipped'
+
+export interface PipelineStageInfo {
+  label: string
+  status: StageStatus
+  started_at: string | null
+  completed_at: string | null
+  duration_ms: number | null
+  detail: string | null
+}
+
 export interface SweepRecord {
   id: string
   started_at: string
@@ -48,6 +61,19 @@ export interface SweepRecord {
   pdf_report_url: string | null
   linkedin_post: string | null
   is_stale?: boolean
+  pipeline_stage?: PipelineStage
+  news_status?: StageStatus
+  news_started_at?: string | null
+  news_completed_at?: string | null
+  market_data_status?: StageStatus
+  market_data_started_at?: string | null
+  market_data_completed_at?: string | null
+  corroboration_status?: StageStatus
+  corroboration_completed_at?: string | null
+  content_status?: StageStatus
+  content_started_at?: string | null
+  content_completed_at?: string | null
+  pipeline_stages?: PipelineStageInfo[]
 }
 
 export interface EntityStat {
@@ -82,6 +108,36 @@ export interface LinkedInPost {
   source_article_url: string
   source_article_title: string
   source_article_id: string
+}
+
+export interface MarketDataStock {
+  entity_name: string
+  ticker: string
+  latest_price: string
+  price_change_pct: string
+  price_change_direction: 'up' | 'down' | 'flat'
+  updated_at: string
+}
+
+export interface MacroIndicators {
+  dgs10: string
+  vix: string
+  fedfunds: string
+  updated_at: string
+}
+
+export interface MarketDataResponse {
+  stocks: MarketDataStock[]
+  macro: MacroIndicators | null
+}
+
+export interface MarketContext {
+  stocks: MarketDataStock[]
+  macro: MacroIndicators | null
+}
+
+export interface ArticleWithMarketContext extends Article {
+  market_context: MarketContext | null
 }
 
 export interface ArticlesResponse {

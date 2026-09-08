@@ -8,6 +8,7 @@ import {
   TrendingUp,
   Globe,
   Database,
+  LineChart,
   Zap,
   ChevronLeft,
   ChevronRight,
@@ -19,7 +20,7 @@ import { cn } from '@/lib/utils'
 import { useUIStore } from '@/stores/ui'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { useArticles, useSweeps, useLinkedInPosts, useEntities } from '@/lib/hooks/useApiHooks'
+import { useArticles, useSweeps, useLinkedInPosts, useEntities, useMarketData } from '@/lib/hooks/useApiHooks'
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, countKey: 'total' },
@@ -27,6 +28,7 @@ const navItems = [
   { href: '/trends', label: 'Trends', icon: TrendingUp, countKey: null },
   { href: '/entities', label: 'Entities', icon: Globe, countKey: 'entities' },
   { href: '/sources', label: 'Sources', icon: Database, countKey: null },
+  { href: '/market', label: 'Market Data', icon: LineChart, countKey: 'market' },
   { href: '/sweeps', label: 'Sweeps', icon: Zap, countKey: 'sweeps' },
   { href: '/posts', label: 'LinkedIn Posts', icon: LinkedInIcon, countKey: 'posts' },
 ]
@@ -36,6 +38,7 @@ function SidebarCounts() {
   const { data: sweepsData } = useSweeps(1, 1)
   const { data: postsData } = useLinkedInPosts(undefined, 1)
   const { data: entitiesData } = useEntities(undefined, undefined, 'mentions', 1)
+  const { data: marketData } = useMarketData()
 
   const counts: Record<string, number | undefined> = {
     total: articlesData?.total,
@@ -43,6 +46,7 @@ function SidebarCounts() {
     entities: entitiesData?.entities?.length,
     sweeps: sweepsData?.sweeps?.filter((s) => s.status === 'running').length,
     posts: postsData?.posts?.filter((p) => p.status === 'draft').length,
+    market: marketData?.stocks?.length,
   }
 
   return counts
