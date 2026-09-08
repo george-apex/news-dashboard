@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next'
 import { ThemeProvider } from 'next-themes'
 import { Sidebar } from '@/components/layout/Sidebar'
@@ -17,7 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen font-sans antialiased">
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
+          defaultTheme="light"
           enableSystem
           disableTransitionOnChange
         >

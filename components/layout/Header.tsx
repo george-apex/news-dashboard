@@ -101,6 +101,31 @@ function TriggerSweepDialog() {
 
 export function Header() {
   const { sidebarOpen } = useUIStore()
+  const [exporting, setExporting] = useState(false)
+
+  const handleExport = async () => {
+    setExporting(true)
+    try {
+      const res = await fetch('/api/export/pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scope: 'dashboard' }),
+      })
+      if (res.ok) {
+        const blob = await res.blob()
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `news-intelligence-${new Date().toISOString().split('T')[0]}.pdf`
+        a.click()
+        URL.revokeObjectURL(url)
+      }
+    } catch (e) {
+      console.error('PDF export failed:', e)
+    } finally {
+      setExporting(false)
+    }
+  }
 
   return (
     <header
@@ -114,9 +139,9 @@ export function Header() {
       </div>
       <div className="flex items-center gap-2">
         <TriggerSweepDialog />
-        <Button variant="outline" size="sm" className="gap-2">
+        <Button variant="outline" size="sm" className="gap-2" onClick={handleExport} disabled={exporting}>
           <Download className="h-3.5 w-3.5" />
-          Export PDF
+          {exporting ? 'Exporting...' : 'Export PDF'}
         </Button>
         <ThemeToggle />
       </div>

@@ -46,10 +46,17 @@ export async function POST(request: NextRequest) {
     let totalHighCorr = 0
     let sentimentSum = 0
     let sentimentCount = 0
+    const topicStatsData: Record<string, Record<string, string>> = {}
 
+    const statsPipeline = redis.pipeline()
     for (const topic of TOPICS) {
-      const data = await redis.hgetall<Record<string, string>>(keys.topicStats(topic))
+      statsPipeline.hgetall(keys.topicStats(topic))
+    }
+    const statsResults = await statsPipeline.exec<Record<string, string>[]>()
+    for (let i = 0; i < TOPICS.length; i++) {
+      const data = statsResults[i]
       if (data && Object.keys(data).length > 0) {
+        topicStatsData[TOPICS[i]] = data
         const count = Number(data.article_count || 0)
         totalArticles += count
         totalHighCorr += Number(data.high_corroboration_count || 0)
@@ -88,7 +95,7 @@ export async function POST(request: NextRequest) {
     doc.setFont('helvetica', 'normal')
     for (const topic of TOPICS) {
       addPageIfNeeded(8)
-      const data = await redis.hgetall<Record<string, string>>(keys.topicStats(topic))
+      const data = topicStatsData[topic]
       const label = TOPIC_LABELS[topic] || topic
       if (data && Object.keys(data).length > 0) {
         doc.text(label, margin, y)
@@ -158,7 +165,7 @@ export async function POST(request: NextRequest) {
     const entityNames = await redis.zrange(keys.entitiesByMentions(), 0, 9, { rev: true }) as string[]
     if (entityNames.length > 0) {
       const pipeline = redis.pipeline()
-      for (const name of entityNames) pipeline.hgetall(keys.entity(encodeURIComponent(name)))
+      for (const name of entityNames) pipeline.hgetall(keys.entity(name))
       const entityResults = await pipeline.exec<Record<string, string>[]>()
       const entities = entityResults.filter((r) => r && Object.keys(r).length > 0)
 
