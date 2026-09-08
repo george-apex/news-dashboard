@@ -114,7 +114,7 @@ export function EntityNetworkGraph({ data, entities, loading, onEntityClick }: E
     if (!data?.nodes) return []
     const capped = data.nodes.slice(0, 30)
     const cappedIds = new Set(capped.map((n) => n.id))
-    const cappedLinks = data.links
+    const cappedLinks = (data.links ?? [])
       .filter((l) => cappedIds.has(l.source) && cappedIds.has(l.target))
       .slice(0, 100)
     const simNodes: SimNode[] = capped.map((n) => ({

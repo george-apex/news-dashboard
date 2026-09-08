@@ -56,15 +56,15 @@ export default function DashboardPage() {
   const { data: marketData } = useMarketData()
   const { data: sweepsData } = useSweeps(1, 20)
 
-  const totalArticles = topicStats?.topics.reduce((s, t) => s + t.article_count, 0) ?? 0
-  const highCorr = topicStats?.topics.reduce((s, t) => s + t.high_corroboration_count, 0) ?? 0
-  const avgSentiment = topicStats?.topics.length
+  const totalArticles = topicStats?.topics?.reduce((s, t) => s + t.article_count, 0) ?? 0
+  const highCorr = topicStats?.topics?.reduce((s, t) => s + t.high_corroboration_count, 0) ?? 0
+  const avgSentiment = topicStats?.topics?.length
     ? topicStats.topics.reduce((s, t) => s + t.avg_sentiment, 0) / topicStats.topics.length
     : 0
   const sentimentLabel = avgSentiment >= 0.3 ? 'Positive' : avgSentiment <= -0.3 ? 'Negative' : 'Neutral'
 
   const sortedStocks = marketData?.stocks
-    ? [...marketData.stocks].sort((a, b) => parseFloat(b.price_change_pct) - parseFloat(a.price_change_pct))
+    ? [...(marketData.stocks ?? [])].sort((a, b) => parseFloat(b.price_change_pct) - parseFloat(a.price_change_pct))
     : []
   const topGainers = sortedStocks.filter((s) => parseFloat(s.price_change_pct) > 0).slice(0, 3)
   const topLosers = sortedStocks.filter((s) => parseFloat(s.price_change_pct) < 0).reverse().slice(0, 3)
@@ -191,7 +191,7 @@ export default function DashboardPage() {
                 ))}
               </div>
             ) : (
-              topArticles?.articles.map((a) => (
+              topArticles?.articles?.map((a) => (
                 <TrendingStoryCard key={a.id} article={a} />
               ))
             )}

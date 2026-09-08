@@ -12,7 +12,7 @@ interface EntityCloudProps {
 
 export function EntityCloud({ data, loading, onEntityClick }: EntityCloudProps) {
   if (loading) return <Skeleton className="h-48 w-full rounded-lg" />
-  if (!data || data.entities.length === 0) return <div className="flex items-center justify-center h-48 text-sm text-muted-foreground">No entities</div>
+  if (!data || !data.entities || data.entities.length === 0) return <div className="flex items-center justify-center h-48 text-sm text-muted-foreground">No entities</div>
 
   const maxMentions = Math.max(...data.entities.map((e) => e.mention_count), 1)
 

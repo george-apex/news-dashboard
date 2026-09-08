@@ -70,12 +70,12 @@ export default function PostsPage() {
             Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="h-28 rounded-lg bg-muted animate-pulse" />
             ))
-          ) : postsData?.posts.length === 0 ? (
+          ) : postsData?.posts?.length === 0 ? (
             <div className="py-16 text-center text-sm text-muted-foreground">
               No LinkedIn posts yet. Trigger a sweep with LinkedIn generation enabled.
             </div>
           ) : (
-            postsData?.posts.map((post, i) => (
+            postsData?.posts?.map((post, i) => (
               <LinkedInPostCard
                 key={post.id || `post-${i}`}
                 post={post}

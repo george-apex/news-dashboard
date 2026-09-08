@@ -16,7 +16,7 @@ interface SourceBreakdownChartProps {
 
 export function SourceBreakdownChart({ data, loading, onSourceClick }: SourceBreakdownChartProps) {
   if (loading) return <Skeleton className="h-64 w-full rounded-lg" />
-  if (!data || data.data.length === 0) return <div className="flex items-center justify-center h-64 text-sm text-muted-foreground">No data</div>
+  if (!data || !data.data || data.data.length === 0) return <div className="flex items-center justify-center h-64 text-sm text-muted-foreground">No data</div>
 
   const sourceMap = new Map<string, { source: string; total: number; avg_relevance: number; avg_sentiment: number; byType: Record<string, number> }>()
 

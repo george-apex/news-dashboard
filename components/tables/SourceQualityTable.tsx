@@ -34,7 +34,7 @@ export function SourceQualityTable({ data }: { data?: SourceQualityResponse }) {
     return arr
   }, [data, sortField, sortDir])
 
-  if (!data || data.sources.length === 0) return <div className="text-sm text-muted-foreground py-8 text-center">No source quality data</div>
+  if (!data || !data.sources || data.sources.length === 0) return <div className="text-sm text-muted-foreground py-8 text-center">No source quality data</div>
 
   const arrow = (field: SortField) => {
     if (sortField !== field) return ' ↕'

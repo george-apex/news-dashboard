@@ -125,9 +125,9 @@ export function ArticleCard({ article }: { article: Article }) {
         </Badge>
       </div>
 
-      {article.entities.length > 0 && (
+      {article.entities?.length > 0 && (
         <div className="flex flex-wrap gap-1 mb-2">
-          {article.entities.map((e) => (
+          {article.entities?.map((e) => (
             <button key={e.name} onClick={() => router.push(`/feed?entity=${encodeURIComponent(e.name)}`)} className="rounded-md bg-secondary/50 px-1.5 py-0.5 text-[10px] text-secondary-foreground cursor-pointer hover:bg-secondary">
               {e.name}
             </button>
@@ -151,7 +151,7 @@ export function ArticleCard({ article }: { article: Article }) {
                   {article.summary}
                 </p>
               )}
-              {article.entities.length > 0 && (
+              {article.entities?.length > 0 && (
                 <MarketContextPanel articleId={article.id} />
               )}
             </>

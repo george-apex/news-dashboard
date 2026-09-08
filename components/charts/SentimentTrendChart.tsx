@@ -18,7 +18,7 @@ export function SentimentTrendChart({ data, loading, topicFilter, onTopicChange 
   const [localTopic, setLocalTopic] = useState<Topic | 'all'>('all')
 
   if (loading) return <Skeleton className="h-72 w-full rounded-lg" />
-  if (!data || data.data.length === 0) return <div className="flex items-center justify-center h-72 text-sm text-muted-foreground">No data</div>
+  if (!data || !data.data || data.data.length === 0) return <div className="flex items-center justify-center h-72 text-sm text-muted-foreground">No data</div>
 
   const chartData = data.data.map((d) => ({
     date: d.date ? new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—',

@@ -66,10 +66,10 @@ export function FeedContent() {
           ))
         ) : error ? (
           <ErrorState message="Failed to load articles" onRetry={() => mutate()} />
-        ) : data?.articles.length === 0 ? (
+        ) : data?.articles?.length === 0 ? (
           <EmptyState message="No articles found. Try adjusting your filters or trigger a sweep." />
         ) : (
-          data?.articles.map((article) => (
+          data?.articles?.map((article) => (
             <ArticleCard key={article.id} article={article} />
           ))
         )}

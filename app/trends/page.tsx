@@ -116,7 +116,7 @@ export default function TrendsPage() {
             </CardHeader>
             <CardContent>
               <TopicDonut data={topicDist} loading={distLoading} />
-              {topicDist && (
+              {topicDist && topicDist.data && (
                 <div className="mt-4 space-y-2">
                   <div className="grid grid-cols-5 gap-2 text-[10px] text-muted-foreground font-medium px-2">
                     <span>Topic</span>

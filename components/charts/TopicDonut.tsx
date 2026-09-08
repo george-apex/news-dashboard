@@ -15,7 +15,7 @@ interface TopicDonutProps {
 
 export function TopicDonut({ data, loading, onTopicClick, compact }: TopicDonutProps) {
   if (loading) return <Skeleton className={compact ? 'h-28 w-full rounded-lg' : 'h-64 w-full rounded-lg'} />
-  if (!data || data.data.length === 0) return <div className={`flex items-center justify-center ${compact ? 'h-28' : 'h-64'} text-sm text-muted-foreground`}>No data</div>
+  if (!data || !data.data || data.data.length === 0) return <div className={`flex items-center justify-center ${compact ? 'h-28' : 'h-64'} text-sm text-muted-foreground`}>No data</div>
 
   const chartData = data.data.map((d) => ({
     name: d.topic,

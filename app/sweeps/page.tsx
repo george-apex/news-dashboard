@@ -107,7 +107,7 @@ function PipelineProgress({ sweep }: { sweep: SweepRecord }) {
 export default function SweepsPage() {
   const [selectedSweepId, setSelectedSweepId] = useState<string | null>(null)
   const { data: sweepsData, isLoading, mutate } = useSweeps()
-  const selectedSweep = sweepsData?.sweeps.find((s) => s.id === selectedSweepId)
+  const selectedSweep = sweepsData?.sweeps?.find((s) => s.id === selectedSweepId)
   const { data: sweepDetail } = useSweep(selectedSweepId, selectedSweep?.status === 'running')
   const [showClearConfirm, setShowClearConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -141,7 +141,7 @@ export default function SweepsPage() {
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Sweeps</h2>
-        {sweepsData && sweepsData.sweeps.length > 0 && (
+        {sweepsData && sweepsData.sweeps?.length > 0 && (
           <button
             onClick={() => setShowClearConfirm(true)}
             disabled={deleting}
@@ -166,9 +166,9 @@ export default function SweepsPage() {
                 <div key={i} className="h-10 bg-muted animate-pulse rounded" />
               ))}
             </div>
-          ) : sweepsData && sweepsData.sweeps.length > 0 ? (
+          ) : sweepsData && sweepsData.sweeps?.length > 0 ? (
             <SweepHistoryTable
-              sweeps={sweepsData.sweeps}
+              sweeps={sweepsData.sweeps ?? []}
               onRowClick={(sweep) => setSelectedSweepId(sweep.id)}
               onDelete={handleDeleteSweep}
             />
@@ -258,7 +258,7 @@ export default function SweepsPage() {
               <div>
                 <span className="text-muted-foreground">Topics:</span>
                 <div className="flex flex-wrap gap-1.5 mt-1">
-                  {sweepDetail.topics.map((t) => (
+                  {sweepDetail.topics?.map((t) => (
                     <Badge key={t} className="text-[10px]">
                       {TOPIC_LABELS[t as Topic] || t}
                     </Badge>

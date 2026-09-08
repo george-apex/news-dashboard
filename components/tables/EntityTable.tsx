@@ -32,7 +32,7 @@ export function EntityTable({ entities }: { entities: EntityStat[] }) {
                   <span className="tabular-nums">{(entity.avg_sentiment ?? 0).toFixed(2)}</span>
                 </div>
               </td>
-              <td className="p-2 text-muted-foreground">{entity.topics.length} topics</td>
+              <td className="p-2 text-muted-foreground">{entity.topics?.length ?? 0} topics</td>
               <td className="p-2">
                 <div className="flex items-center gap-1">
                   {entity.trend_direction === 'up' && <TrendingUp className="h-3 w-3 text-emerald-500" />}

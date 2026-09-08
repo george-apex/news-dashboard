@@ -12,7 +12,7 @@ interface SourceScatterPlotProps {
 
 export function SourceScatterPlot({ data, loading }: SourceScatterPlotProps) {
   if (loading) return <Skeleton className="h-64 w-full rounded-lg" />
-  if (!data || data.sources.length === 0) return <div className="flex items-center justify-center h-64 text-sm text-muted-foreground">No data</div>
+  if (!data || !data.sources || data.sources.length === 0) return <div className="flex items-center justify-center h-64 text-sm text-muted-foreground">No data</div>
 
   const chartData = data.sources.map((s) => ({
     name: s.source,

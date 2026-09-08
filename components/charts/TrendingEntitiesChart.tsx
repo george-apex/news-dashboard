@@ -11,7 +11,7 @@ interface TrendingEntitiesChartProps {
 
 export function TrendingEntitiesChart({ data, loading }: TrendingEntitiesChartProps) {
   if (loading) return <Skeleton className="h-64 w-full rounded-lg" />
-  if (!data || data.entities.length === 0) return <div className="flex items-center justify-center h-64 text-sm text-muted-foreground">No trending entities</div>
+  if (!data || !data.entities || data.entities.length === 0) return <div className="flex items-center justify-center h-64 text-sm text-muted-foreground">No trending entities</div>
 
   const chartData = data.entities
     .sort((a, b) => b.trend_delta - a.trend_delta)
