@@ -25,4 +25,9 @@ export function useApi<T>(path: string | null, refreshInterval?: number) {
   })
 }
 
+export async function apiClient(path: string, options?: RequestInit): Promise<Response> {
+  const url = path.startsWith('http') ? path : `/api${path}`
+  return fetch(url, options)
+}
+
 export { mutate, fetcher }

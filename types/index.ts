@@ -40,13 +40,14 @@ export interface SweepRecord {
   id: string
   started_at: string
   completed_at: string | null
-  status: 'running' | 'completed' | 'failed'
+  status: 'running' | 'completed' | 'failed' | 'stale'
   topics: Topic[]
   article_count: number
   error: string | null
   triggered_by: 'manual' | 'scheduled'
   pdf_report_url: string | null
   linkedin_post: string | null
+  is_stale?: boolean
 }
 
 export interface EntityStat {
@@ -75,6 +76,7 @@ export interface LinkedInPost {
   sweep_id: string
   topic: Topic
   content: string
+  angle: string
   created_at: string
   status: 'draft' | 'published'
 }
@@ -105,7 +107,7 @@ export interface SentimentTrendResponse {
 }
 
 export interface TopicDistributionResponse {
-  data: { topic: Topic; count: number; avg_sentiment: number }[]
+  data: { topic: Topic; count: number; avg_sentiment: number; avg_relevance: number }[]
 }
 
 export interface SourcesResponse {

@@ -49,6 +49,7 @@ export async function GET(request: NextRequest) {
         last_seen: data.last_seen,
         trend_direction: (data.trend_direction || 'stable') as EntityStat['trend_direction'],
       }))
+      .filter((e) => e.name && e.name.trim() !== '' && e.mention_count > 0)
 
     if (type) {
       entities = entities.filter((e) => e.type === type)

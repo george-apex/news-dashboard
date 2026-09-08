@@ -17,15 +17,15 @@ export async function GET(request: NextRequest) {
 
     const sevenDaysAgo = new Date()
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
-    const fromEpoch = dateFrom ? new Date(dateFrom).getTime() / 86400000 : sevenDaysAgo.getTime() / 86400000
-    const toEpoch = dateTo ? new Date(dateTo).getTime() / 86400000 : Date.now() / 86400000
+    const fromSec = dateFrom ? new Date(dateFrom).getTime() / 1000 : sevenDaysAgo.getTime() / 1000
+    const toSec = dateTo ? new Date(dateTo).getTime() / 1000 : Date.now() / 1000
 
     let trendKey = keys.trendSentimentDaily()
     if (topic) {
       trendKey = keys.trendTopicDaily(topic)
     }
 
-    const rawItems = await redis.zrange(trendKey, Math.floor(fromEpoch), Math.ceil(toEpoch)) as string[]
+    const rawItems = await redis.zrange(trendKey, Math.floor(fromSec), Math.ceil(toSec)) as string[]
 
     const data = rawItems.map((item) => {
       try {

@@ -17,29 +17,69 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ sweeps: [], total: 0 })
     }
 
+    const zScores = await (async () => {
+      const p = redis.pipeline()
+      for (const id of sweepIds) {
+        p.zscore(keys.sweepsByDate(), id)
+      }
+      return p.exec<number[]>()
+    })()
+
     const pipeline = redis.pipeline()
     for (const id of sweepIds) {
       pipeline.hgetall(keys.sweep(id))
     }
     const results = await pipeline.exec<Record<string, string>[]>()
-    const sweeps: SweepRecord[] = results
+    const sweeps: (SweepRecord & { is_stale?: boolean })[] = results
       .filter((r) => r && Object.keys(r).length > 0)
-      .map((d) => ({
-        id: d.id,
-        started_at: d.started_at,
-        completed_at: d.completed_at || null,
-        status: d.status as SweepRecord['status'],
-        topics: typeof d.topics === 'string' ? JSON.parse(d.topics) : [],
-        article_count: Number(d.article_count),
-        error: d.error || null,
-        triggered_by: d.triggered_by as SweepRecord['triggered_by'],
-        pdf_report_url: d.pdf_report_url || null,
-        linkedin_post: d.linkedin_post || null,
-      }))
+      .map((d, i) => {
+        const startedAt = d.started_at || (zScores[i] ? new Date(Number(zScores[i]) * 1000).toISOString() : '')
+        const status = d.status as SweepRecord['status']
+        let isStale = false
+        if (status === 'running' && startedAt) {
+          const elapsed = Date.now() - new Date(startedAt).getTime()
+          if (elapsed > 10 * 60 * 1000) isStale = true
+        }
+        return {
+          id: d.id,
+          started_at: startedAt,
+          completed_at: d.completed_at || (status === 'completed' ? null : null),
+          status,
+          topics: typeof d.topics === 'string' ? JSON.parse(d.topics) : [],
+          article_count: Number(d.article_count || d.total_articles || 0),
+          error: d.error || null,
+          triggered_by: (d.triggered_by || 'manual') as SweepRecord['triggered_by'],
+          pdf_report_url: d.pdf_report_url || null,
+          linkedin_post: d.linkedin_post || null,
+          ...(isStale ? { is_stale: true } : {}),
+        }
+      })
 
     return NextResponse.json({ sweeps, total })
   } catch (error) {
     console.error('GET /api/sweeps error:', error)
     return NextResponse.json({ error: 'Failed to fetch sweeps' }, { status: 500 })
+  }
+}
+
+export async function DELETE() {
+  try {
+    const redis = getRedisClient()
+    const sweepIds = await redis.zrange(keys.sweepsByDate(), 0, -1) as string[]
+
+    if (sweepIds.length > 0) {
+      const pipeline = redis.pipeline()
+      for (const id of sweepIds) {
+        pipeline.del(keys.sweep(id))
+        pipeline.zrem(keys.sweepsByDate(), id)
+        pipeline.del(keys.articlesBySweep(id))
+      }
+      await pipeline.exec()
+    }
+
+    return NextResponse.json({ success: true, deleted: sweepIds.length })
+  } catch (error) {
+    console.error('DELETE /api/sweeps error:', error)
+    return NextResponse.json({ error: 'Failed to clear sweeps' }, { status: 500 })
   }
 }

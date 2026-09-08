@@ -20,6 +20,7 @@ export async function GET(
       sweep_id: data.sweep_id,
       topic: data.topic as Topic,
       content: data.content,
+      angle: data.angle || '',
       created_at: data.created_at,
       status: data.status as LinkedInPost['status'],
     }

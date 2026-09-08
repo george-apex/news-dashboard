@@ -19,6 +19,7 @@ export async function GET() {
         topic: d.topic as Topic,
         count: Number(d.article_count),
         avg_sentiment: Number(d.avg_sentiment),
+        avg_relevance: Number(d.avg_relevance),
       }))
 
     return NextResponse.json({ data })

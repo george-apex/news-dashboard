@@ -46,8 +46,19 @@ export async function GET(request: NextRequest) {
     }
 
     if (corroboration) {
-      const ids = await redis.smembers(keys.articlesByCorroboration(corroboration))
-      articleIds = intersect(articleIds, ids as string[])
+      const allIds = articleIds ?? await redis.zrange(keys.articlesByDate(), 0, -1) as string[]
+      const pipeline = redis.pipeline()
+      for (const id of allIds) {
+        pipeline.hget(keys.article(id), 'corroboration_score')
+      }
+      const scores = await pipeline.exec<string[]>()
+      const corrIds = allIds.filter((_, i) => {
+        const val = scores[i]
+        if (!val) return false
+        if (typeof val === 'string') return val.toLowerCase() === corroboration.toLowerCase()
+        return false
+      })
+      articleIds = intersect(articleIds, corrIds)
     }
 
     if (source) {
@@ -125,6 +136,10 @@ export async function GET(request: NextRequest) {
         if (minRelevance > 0 && a.relevance_score < minRelevance) return false
         if (sentimentMin && a.sentiment_score < Number(sentimentMin)) return false
         if (sentimentMax && a.sentiment_score > Number(sentimentMax)) return false
+        if (corroboration) {
+          const cs = String(a.corroboration_score).toLowerCase()
+          if (cs !== corroboration.toLowerCase()) return false
+        }
         if (search && !a.title.toLowerCase().includes(search.toLowerCase())) return false
         return true
       })

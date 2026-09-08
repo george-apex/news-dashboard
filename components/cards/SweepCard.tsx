@@ -4,16 +4,17 @@ import { SweepRecord } from '@/types'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/common/Badge'
 import { formatDateTime, formatTimeAgo } from '@/lib/utils/format'
-import { Clock, CheckCircle, XCircle, Loader2 } from 'lucide-react'
+import { Clock, CheckCircle, XCircle, Loader2, AlertTriangle } from 'lucide-react'
 
 export function SweepCard({ sweep, onClick }: { sweep: SweepRecord; onClick?: () => void }) {
-  const statusConfig = {
+  const statusConfig: Record<string, { icon: typeof Loader2; color: string; label: string; animate: boolean }> = {
     running: { icon: Loader2, color: '#3b82f6', label: 'Running', animate: true },
     completed: { icon: CheckCircle, color: '#10b981', label: 'Completed', animate: false },
     failed: { icon: XCircle, color: '#ef4444', label: 'Failed', animate: false },
+    stale: { icon: AlertTriangle, color: '#f59e0b', label: 'Stale', animate: false },
   }
 
-  const config = statusConfig[sweep.status]
+  const config = statusConfig[sweep.status] ?? statusConfig.running
   const Icon = config.icon
 
   return (

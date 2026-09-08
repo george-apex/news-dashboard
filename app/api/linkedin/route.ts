@@ -35,6 +35,7 @@ export async function GET(request: NextRequest) {
         sweep_id: d.sweep_id,
         topic: d.topic as Topic,
         content: d.content,
+        angle: d.angle || '',
         created_at: d.created_at,
         status: d.status as LinkedInPost['status'],
       }))
