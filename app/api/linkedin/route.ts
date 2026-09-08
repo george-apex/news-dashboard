@@ -29,19 +29,22 @@ export async function GET(request: NextRequest) {
     }
     const results = await pipeline.exec<Record<string, string>[]>()
     const posts: LinkedInPost[] = results
-      .filter((r) => r && Object.keys(r).length > 0)
-      .map((d) => ({
-        id: d.id,
-        sweep_id: d.sweep_id,
-        topic: d.topic as Topic,
-        content: d.content,
-        angle: d.angle || '',
-        created_at: d.created_at,
-        status: d.status as LinkedInPost['status'],
-        source_article_url: d.source_article_url || '',
-        source_article_title: d.source_article_title || '',
-        source_article_id: d.source_article_id || '',
-      }))
+      .map((d, i) => {
+        if (!d || Object.keys(d).length === 0) return null
+        return {
+          id: d.id || postIds[i],
+          sweep_id: d.sweep_id,
+          topic: d.topic as Topic,
+          content: d.content,
+          angle: d.angle || '',
+          created_at: d.created_at,
+          status: d.status as LinkedInPost['status'],
+          source_article_url: d.source_article_url || '',
+          source_article_title: d.source_article_title || '',
+          source_article_id: d.source_article_id || '',
+        }
+      })
+      .filter(Boolean) as LinkedInPost[]
 
     return NextResponse.json({ posts })
   } catch (error) {

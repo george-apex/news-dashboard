@@ -16,7 +16,7 @@ export async function GET(
     }
 
     const post: LinkedInPost = {
-      id: data.id,
+      id: data.id || id,
       sweep_id: data.sweep_id,
       topic: data.topic as Topic,
       content: data.content,

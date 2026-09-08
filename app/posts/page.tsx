@@ -60,9 +60,9 @@ export default function PostsPage() {
               No LinkedIn posts yet. Trigger a sweep with LinkedIn generation enabled.
             </div>
           ) : (
-            postsData?.posts.map((post) => (
+            postsData?.posts.map((post, i) => (
               <LinkedInPostCard
-                key={post.id}
+                key={post.id || `post-${i}`}
                 post={post}
                 selected={selectedPostId === post.id}
                 onClick={() => setSelectedPostId(post.id)}

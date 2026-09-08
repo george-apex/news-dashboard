@@ -14,8 +14,8 @@ interface TopicDonutProps {
 }
 
 export function TopicDonut({ data, loading, onTopicClick, compact }: TopicDonutProps) {
-  if (loading) return <Skeleton className={compact ? 'h-40 w-full rounded-lg' : 'h-64 w-full rounded-lg'} />
-  if (!data || data.data.length === 0) return <div className={`flex items-center justify-center ${compact ? 'h-40' : 'h-64'} text-sm text-muted-foreground`}>No data</div>
+  if (loading) return <Skeleton className={compact ? 'h-28 w-full rounded-lg' : 'h-64 w-full rounded-lg'} />
+  if (!data || data.data.length === 0) return <div className={`flex items-center justify-center ${compact ? 'h-28' : 'h-64'} text-sm text-muted-foreground`}>No data</div>
 
   const chartData = data.data.map((d) => ({
     name: d.topic,
@@ -24,9 +24,9 @@ export function TopicDonut({ data, loading, onTopicClick, compact }: TopicDonutP
   }))
 
   const total = chartData.reduce((s, d) => s + d.value, 0)
-  const innerR = compact ? 40 : 60
-  const outerR = compact ? 65 : 90
-  const containerH = compact ? 140 : 256
+  const innerR = compact ? 35 : 60
+  const outerR = compact ? 55 : 90
+  const containerH = compact ? 120 : 256
 
   if (compact) {
     return (
