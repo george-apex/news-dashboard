@@ -58,8 +58,6 @@ export default function DashboardPage() {
   const avgSentiment = topicStats?.topics.length
     ? topicStats.topics.reduce((s, t) => s + t.avg_sentiment, 0) / topicStats.topics.length
     : 0
-  const activeTopics = topicStats?.topics.filter((t) => t.article_count > 0).length ?? 0
-
   const sentimentLabel = avgSentiment >= 0.3 ? 'Positive' : avgSentiment <= -0.3 ? 'Negative' : 'Neutral'
 
   return (
@@ -67,51 +65,45 @@ export default function DashboardPage() {
       {statsError && (
         <ErrorState message="Failed to load dashboard data. Please check your connection." onRetry={() => window.location.reload()} />
       )}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <KPICard
-          title="Total Articles"
-          value={totalArticles}
-          trend="up"
-          trendValue="+12%"
-          onClick={() => router.push('/feed')}
-        />
-        <KPICard
-          title="High Corroboration"
-          value={highCorr}
-          trend="up"
-          trendValue="+8%"
-          onClick={() => router.push('/feed?corroboration=high')}
-        />
-        <KPICard
-          title="Avg Sentiment"
-          value={avgSentiment.toFixed(2)}
-          trend={avgSentiment >= 0 ? 'up' : 'down'}
-          trendValue={sentimentLabel}
-          onClick={() => router.push('/trends')}
-        />
-        <KPICard
-          title="Active Topics"
-          value={`${activeTopics}/7`}
-          trend="stable"
-          trendValue="of 7"
-          onClick={() => router.push('/trends')}
-        />
-      </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Topic Distribution</CardTitle>
-          </CardHeader>
-          <CardContent className="h-[250px]">
-            <TopicDonut
-              data={topicDist}
-              loading={distLoading}
-              compact
-              onTopicClick={(topic) => router.push(`/feed?topic=${topic}`)}
+        <div className="space-y-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">Topic Distribution</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <TopicDonut
+                data={topicDist}
+                loading={distLoading}
+                compact
+                onTopicClick={(topic) => router.push(`/feed?topic=${topic}`)}
+              />
+            </CardContent>
+          </Card>
+          <div className="grid grid-cols-1 gap-3">
+            <KPICard
+              title="Total Articles"
+              value={totalArticles}
+              trend="up"
+              trendValue="+12%"
+              onClick={() => router.push('/feed')}
             />
-          </CardContent>
-        </Card>
+            <KPICard
+              title="High Corroboration"
+              value={highCorr}
+              trend="up"
+              trendValue="+8%"
+              onClick={() => router.push('/feed?corroboration=high')}
+            />
+            <KPICard
+              title="Avg Sentiment"
+              value={avgSentiment.toFixed(2)}
+              trend={avgSentiment >= 0 ? 'up' : 'down'}
+              trendValue={sentimentLabel}
+              onClick={() => router.push('/trends')}
+            />
+          </div>
+        </div>
         <Card className="lg:col-span-2">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm">Trending Stories</CardTitle>
