@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useSentimentTrend, useTopicDistribution, useArticles, useCorroborationHeatmap } from '@/lib/hooks/useApiHooks'
 import { SentimentTrendChart } from '@/components/charts/SentimentTrendChart'
 import { TopicDonut } from '@/components/charts/TopicDonut'
@@ -14,12 +14,39 @@ import { TOPIC_LABELS } from '@/lib/utils/constants'
 import { TOPIC_COLORS } from '@/lib/utils/colors'
 import { ErrorState } from '@/components/common/ErrorState'
 
+type TimeRange = '24h' | '7d' | '14d' | '30d' | 'all'
+
+const TIME_RANGE_OPTIONS: { value: TimeRange; label: string }[] = [
+  { value: '24h', label: 'Last 24 hours' },
+  { value: '7d', label: 'Last 7 days' },
+  { value: '14d', label: 'Last 14 days' },
+  { value: '30d', label: 'Last 30 days' },
+  { value: 'all', label: 'All time' },
+]
+
+function getDateRange(range: TimeRange): { from?: string; to?: string } {
+  if (range === 'all') return {}
+  const now = new Date()
+  const from = new Date()
+  switch (range) {
+    case '24h': from.setDate(now.getDate() - 1); break
+    case '7d': from.setDate(now.getDate() - 7); break
+    case '14d': from.setDate(now.getDate() - 14); break
+    case '30d': from.setDate(now.getDate() - 30); break
+  }
+  return { from: from.toISOString().split('T')[0], to: now.toISOString().split('T')[0] }
+}
+
 export default function TrendsPage() {
   const [selectedTopic, setSelectedTopic] = useState<string>('all')
+  const [timeRange, setTimeRange] = useState<TimeRange>('7d')
   const [timelinePage, setTimelinePage] = useState(1)
+  const { from, to } = useMemo(() => getDateRange(timeRange), [timeRange])
 
   const { data: sentimentData, isLoading: sentimentLoading, error: sentimentError } = useSentimentTrend(
-    selectedTopic !== 'all' ? selectedTopic : undefined
+    selectedTopic !== 'all' ? selectedTopic : undefined,
+    from,
+    to
   )
   const { data: topicDist, isLoading: distLoading, error: distError } = useTopicDistribution()
   const { data: timelineData, isLoading: timelineLoading, error: timelineError } = useArticles({
@@ -27,8 +54,10 @@ export default function TrendsPage() {
     limit: 100,
     topic: selectedTopic !== 'all' ? selectedTopic : undefined,
     page: timelinePage,
+    date_from: from,
+    date_to: to,
   })
-  const { data: heatmapData, isLoading: heatmapLoading, error: heatmapError } = useCorroborationHeatmap()
+  const { data: heatmapData, isLoading: heatmapLoading, error: heatmapError } = useCorroborationHeatmap(from, to)
 
   const hasError = sentimentError || distError || timelineError || heatmapError
 
@@ -50,6 +79,15 @@ export default function TrendsPage() {
             ))}
           </SelectContent>
         </Select>
+        <select
+          value={timeRange}
+          onChange={(e) => setTimeRange(e.target.value as TimeRange)}
+          className="text-xs border border-border rounded-md px-2 py-1.5 bg-card text-foreground"
+        >
+          {TIME_RANGE_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
       </div>
 
       <Tabs defaultValue="sentiment" className="space-y-4">
@@ -98,7 +136,7 @@ export default function TrendsPage() {
                         <span className="tabular-nums">{d.count}</span>
                         <span className="tabular-nums">{total > 0 ? ((d.count / total) * 100).toFixed(1) : 0}%</span>
                         <span className="tabular-nums">{d.avg_sentiment?.toFixed(2) ?? '—'}</span>
-                        <span className="tabular-nums">—</span>
+                        <span className="tabular-nums">{d.avg_relevance?.toFixed(2) ?? '—'}</span>
                       </div>
                     )
                   })}
