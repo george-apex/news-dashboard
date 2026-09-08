@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getRedisClient, keys } from '@/lib/redis'
-import { SweepRecord, PipelineStageInfo, StageStatus } from '@/types'
+import { SweepRecord, PipelineStageInfo, StageStatus, Topic } from '@/types'
+import { safeParseArray } from '@/lib/utils'
 
 function computeDuration(start: string | null | undefined, end: string | null | undefined): number | null {
   if (!start || !end) return null
@@ -79,7 +80,7 @@ export async function GET(
       started_at: data.started_at || (zScores ? new Date(Number(zScores) * 1000).toISOString() : ''),
       completed_at: data.completed_at || null,
       status: data.status as SweepRecord['status'],
-      topics: typeof data.topics === 'string' ? JSON.parse(data.topics) : [],
+      topics: safeParseArray(data.topics) as Topic[],
       article_count: articleCount,
       error: data.error || null,
       triggered_by: (data.triggered_by || 'manual') as SweepRecord['triggered_by'],

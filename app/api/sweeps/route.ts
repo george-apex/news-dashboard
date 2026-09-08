@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getRedisClient, keys } from '@/lib/redis'
 import { SweepRecord, Topic } from '@/types'
+import { safeParseArray } from '@/lib/utils'
 
 export async function GET(request: NextRequest) {
   try {
@@ -45,7 +46,7 @@ export async function GET(request: NextRequest) {
           started_at: startedAt,
           completed_at: d.completed_at || (status === 'completed' ? null : null),
           status,
-          topics: typeof d.topics === 'string' ? JSON.parse(d.topics) : [],
+          topics: safeParseArray(d.topics) as Topic[],
           article_count: Number(d.article_count || d.total_articles || 0),
           error: d.error || null,
           triggered_by: (d.triggered_by || 'manual') as SweepRecord['triggered_by'],

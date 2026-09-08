@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getRedisClient, keys } from '@/lib/redis'
 import { Topic, Article, MarketDataStock, MacroIndicators, MarketContext } from '@/types'
+import { safeParseArray } from '@/lib/utils'
 
 export async function GET(
   request: NextRequest,
@@ -26,7 +27,7 @@ export async function GET(
       corroboration_score: data.corroboration_score as Article['corroboration_score'],
       source_count: Number(data.source_count),
       sentiment_score: Number(data.sentiment_score),
-      entities: typeof data.entities === 'string' ? JSON.parse(data.entities) : [],
+      entities: safeParseArray(data.entities) as Article['entities'],
       topic: data.topic as Topic,
       summary: data.summary || null,
       fetched_at: data.fetched_at,

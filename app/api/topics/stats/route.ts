@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getRedisClient, keys } from '@/lib/redis'
 import { TOPICS } from '@/lib/utils/constants'
 import { Topic, TopicStat } from '@/types'
+import { safeParseArray } from '@/lib/utils'
 
 export async function GET() {
   try {
@@ -21,7 +22,7 @@ export async function GET() {
         avg_sentiment: Number(data.avg_sentiment),
         avg_relevance: Number(data.avg_relevance),
         high_corroboration_count: Number(data.high_corroboration_count),
-        top_entities: typeof data.top_entities === 'string' ? JSON.parse(data.top_entities) : [],
+        top_entities: safeParseArray(data.top_entities) as string[],
         last_updated: data.last_updated,
       }))
 
