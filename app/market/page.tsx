@@ -299,14 +299,14 @@ export default function MarketDataPage() {
         </div>
       ) : (
         <>
-          {data && data.stocks.length > 0 && (
+          {data && data.stocks && data.stocks.length > 0 && (
             <>
               <MarketSentimentSummary stocks={data.stocks} />
               <StockTable stocks={data.stocks} />
               <PriceMovementChart stocks={data.stocks} />
             </>
           )}
-          {data && data.stocks.length === 0 && (
+          {data && (!data.stocks || data.stocks.length === 0) && (
             <Card>
               <CardContent className="py-16 text-center text-sm text-muted-foreground">
                 No market data available yet. Market data appears after a sweep fetches stock information.

@@ -39,7 +39,7 @@ function MarketContextPanel({ articleId }: { articleId: string }) {
   }
 
   const context = data?.market_context
-  if (!context || context.stocks.length === 0) return null
+  if (!context || !context.stocks || context.stocks.length === 0) return null
 
   return (
     <div className="mt-2 pt-2 border-t border-border/50">

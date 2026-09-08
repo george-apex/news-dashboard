@@ -69,7 +69,7 @@ export default function DashboardPage() {
   const topGainers = sortedStocks.filter((s) => parseFloat(s.price_change_pct) > 0).slice(0, 3)
   const topLosers = sortedStocks.filter((s) => parseFloat(s.price_change_pct) < 0).reverse().slice(0, 3)
 
-  const runningSweep = sweepsData?.sweeps.find((s) => s.status === 'running')
+  const runningSweep = sweepsData?.sweeps?.find((s) => s.status === 'running')
 
   return (
     <div className="p-6 space-y-6">
@@ -90,7 +90,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {runningSweep && runningSweep.pipeline_stages && (
+      {runningSweep && runningSweep.pipeline_stages && runningSweep.pipeline_stages.length > 0 && (
         <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 text-xs">
           <Loader2 className="h-3.5 w-3.5 text-blue-500 animate-spin" />
           <span className="text-blue-700 dark:text-blue-400 font-medium">Pipeline running:</span>
@@ -104,7 +104,7 @@ export default function DashboardPage() {
               <span key={i} className="flex items-center gap-1">
                 {icon}
                 <span className={stage.status === 'running' ? 'text-blue-600 font-medium' : 'text-muted-foreground'}>{stage.label}</span>
-                {i < runningSweep.pipeline_stages!.length - 1 && <span className="text-muted-foreground mx-0.5">→</span>}
+                {i < (runningSweep.pipeline_stages?.length ?? 0) - 1 && <span className="text-muted-foreground mx-0.5">→</span>}
               </span>
             )
           })}
