@@ -234,7 +234,7 @@ export function EntityNetworkGraph({ data, entities, loading, onEntityClick }: E
                   fill="hsl(var(--foreground))"
                   opacity={0.8}
                 >
-                  {node.id.length > 12 ? node.id.slice(0, 10) + '…' : node.id}
+                  {(node.id || '').length > 12 ? (node.id || '').slice(0, 10) + '…' : (node.id || '')}
                 </text>
               )}
             </g>

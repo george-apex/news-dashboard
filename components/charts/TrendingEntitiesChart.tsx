@@ -17,7 +17,7 @@ export function TrendingEntitiesChart({ data, loading }: TrendingEntitiesChartPr
     .sort((a, b) => b.trend_delta - a.trend_delta)
     .slice(0, 15)
     .map((e) => ({
-      name: e.name.length > 20 ? e.name.slice(0, 18) + '…' : e.name,
+      name: (e.name || '').length > 20 ? (e.name || '').slice(0, 18) + '…' : (e.name || ''),
       delta: e.trend_delta,
       fill: e.trend_delta >= 0 ? '#10b981' : '#ef4444',
       type: e.type,

@@ -43,7 +43,7 @@ export function SourceBreakdownChart({ data, loading, onSourceClick }: SourceBre
     .slice(0, 15)
     .map((d) => {
       const row: Record<string, string | number> = {
-        name: d.source.length > 20 ? d.source.slice(0, 18) + '…' : d.source,
+        name: (d.source || '').length > 20 ? (d.source || '').slice(0, 18) + '…' : (d.source || ''),
         fullName: d.source,
         total: d.total,
         avg_relevance: d.avg_relevance,
