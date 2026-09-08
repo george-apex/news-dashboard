@@ -17,7 +17,8 @@ import { apiClient } from '@/lib/api/client'
 export default function SweepsPage() {
   const [selectedSweepId, setSelectedSweepId] = useState<string | null>(null)
   const { data: sweepsData, isLoading, mutate } = useSweeps()
-  const { data: sweepDetail } = useSweep(selectedSweepId)
+  const selectedSweep = sweepsData?.sweeps.find((s) => s.id === selectedSweepId)
+  const { data: sweepDetail } = useSweep(selectedSweepId, selectedSweep?.status === 'running')
   const [showClearConfirm, setShowClearConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
 

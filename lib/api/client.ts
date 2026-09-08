@@ -20,7 +20,7 @@ export function useApi<T>(path: string | null, refreshInterval?: number) {
   }
   return useSWR<T>(url, url ? fetcher : null, {
     revalidateOnFocus: false,
-    dedupingInterval: 10000,
+    dedupingInterval: 30000,
     ...(refreshInterval ? { refreshInterval } : {}),
   })
 }

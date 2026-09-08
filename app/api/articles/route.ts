@@ -46,18 +46,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (corroboration) {
-      const allIds = articleIds ?? await redis.zrange(keys.articlesByDate(), 0, -1) as string[]
-      const pipeline = redis.pipeline()
-      for (const id of allIds) {
-        pipeline.hget(keys.article(id), 'corroboration_score')
-      }
-      const scores = await pipeline.exec<string[]>()
-      const corrIds = allIds.filter((_, i) => {
-        const val = scores[i]
-        if (!val) return false
-        if (typeof val === 'string') return val.toLowerCase() === corroboration.toLowerCase()
-        return false
-      })
+      const corrIds = await redis.smembers(keys.articlesByCorroboration(corroboration.toLowerCase())) as string[]
       articleIds = intersect(articleIds, corrIds)
     }
 
