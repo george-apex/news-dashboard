@@ -99,11 +99,11 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="self-start">
+        <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm">Topic Distribution</CardTitle>
           </CardHeader>
-          <CardContent className="pb-2 pt-0">
+          <CardContent className="h-[250px]">
             <TopicDonut
               data={topicDist}
               loading={distLoading}

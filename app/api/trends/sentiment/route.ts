@@ -15,20 +15,27 @@ export async function GET(request: NextRequest) {
       trendKey = keys.trendTopicDaily(topic)
     }
 
-    const rawItems = await redis.zrange(trendKey, 0, -1) as string[]
+    const rawItems = await redis.zrange(trendKey, 0, -1) as Array<string | Record<string, unknown>>
 
     let data = rawItems.map((item) => {
-      try {
-        const parsed = JSON.parse(item)
-        return {
-          date: parsed.date,
-          avg_sentiment: Number(parsed.avg_sentiment ?? parsed.sentiment ?? 0),
-          article_count: Number(parsed.article_count ?? parsed.count ?? 0),
+      let parsed: Record<string, unknown>
+      if (typeof item === 'string') {
+        try {
+          parsed = JSON.parse(item)
+        } catch {
+          return null
         }
-      } catch {
+      } else if (typeof item === 'object' && item !== null) {
+        parsed = item as Record<string, unknown>
+      } else {
         return null
       }
-    }).filter(Boolean) as { date: string; avg_sentiment: number; article_count: number }[]
+      return {
+        date: String(parsed.date ?? ''),
+        avg_sentiment: Number(parsed.avg_sentiment ?? parsed.sentiment ?? 0),
+        article_count: Number(parsed.article_count ?? parsed.count ?? 0),
+      }
+    }).filter((d): d is { date: string; avg_sentiment: number; article_count: number } => d !== null && d.date !== '')
 
     if (dateFrom) {
       data = data.filter((d) => d.date >= dateFrom)

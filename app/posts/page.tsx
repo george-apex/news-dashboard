@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { useLinkedInPosts, useLinkedInPost } from '@/lib/hooks/useApiHooks'
+import { useLinkedInPosts } from '@/lib/hooks/useApiHooks'
+import { LinkedInPost } from '@/types'
 import { LinkedInPostCard } from '@/components/cards/LinkedInPostCard'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -12,9 +13,8 @@ import { formatTimeAgo } from '@/lib/utils/format'
 import { ErrorState } from '@/components/common/ErrorState'
 
 export default function PostsPage() {
-  const [selectedPostId, setSelectedPostId] = useState<string | null>(null)
+  const [selectedPost, setSelectedPost] = useState<LinkedInPost | null>(null)
   const { data: postsData, isLoading, error: postsError } = useLinkedInPosts()
-  const { data: selectedPost } = useLinkedInPost(selectedPostId)
 
   const handleCopy = async (content: string) => {
     await navigator.clipboard.writeText(content)
@@ -64,8 +64,8 @@ export default function PostsPage() {
               <LinkedInPostCard
                 key={post.id || `post-${i}`}
                 post={post}
-                selected={selectedPostId === post.id}
-                onClick={() => setSelectedPostId(post.id)}
+                selected={selectedPost?.id === post.id}
+                onClick={() => setSelectedPost(post)}
               />
             ))
           )}
@@ -125,12 +125,32 @@ export default function PostsPage() {
                   </div>
                 </div>
 
-                <div className="mt-4 flex items-center gap-2">
+                <div className="mt-4 flex items-center gap-2 flex-wrap">
                   <span className="text-[10px] text-muted-foreground">Topic:</span>
                   <TopicBadge topic={selectedPost.topic} />
                   <span className="text-[10px] text-muted-foreground ml-4">Status:</span>
                   <span className="text-[10px] text-foreground capitalize">{selectedPost.status}</span>
+                  {selectedPost.angle && (
+                    <>
+                      <span className="text-[10px] text-muted-foreground ml-4">Angle:</span>
+                      <span className="text-[10px] text-foreground">{selectedPost.angle}</span>
+                    </>
+                  )}
                 </div>
+
+                {selectedPost.source_article_url && (
+                  <div className="mt-3 pt-3 border-t border-border">
+                    <span className="text-[10px] text-muted-foreground">Source: </span>
+                    <a
+                      href={selectedPost.source_article_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[10px] text-primary hover:underline"
+                    >
+                      {selectedPost.source_article_title || selectedPost.source_article_url}
+                    </a>
+                  </div>
+                )}
               </CardContent>
             </Card>
           ) : (

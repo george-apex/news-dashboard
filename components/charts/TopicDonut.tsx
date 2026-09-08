@@ -26,7 +26,7 @@ export function TopicDonut({ data, loading, onTopicClick, compact }: TopicDonutP
   const total = chartData.reduce((s, d) => s + d.value, 0)
   const innerR = compact ? 35 : 60
   const outerR = compact ? 55 : 90
-  const containerH = compact ? 120 : 256
+  const containerH = compact ? 110 : 256
 
   if (compact) {
     return (
