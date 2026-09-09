@@ -41,13 +41,14 @@ export async function GET(request: NextRequest) {
           const elapsed = Date.now() - new Date(startedAt).getTime()
           if (elapsed > 10 * 60 * 1000) isStale = true
         }
+        const articleCount = Number(d.article_count || d.total_articles || 0)
         return {
           id: d.id,
           started_at: startedAt,
           completed_at: d.completed_at || (status === 'completed' ? null : null),
           status,
           topics: safeParseArray(d.topics) as Topic[],
-          article_count: Number(d.article_count || d.total_articles || 0),
+          article_count: articleCount,
           error: d.error || null,
           triggered_by: (d.triggered_by || 'manual') as SweepRecord['triggered_by'],
           pdf_report_url: d.pdf_report_url || null,
@@ -55,6 +56,15 @@ export async function GET(request: NextRequest) {
           ...(isStale ? { is_stale: true } : {}),
         }
       })
+
+    for (const sweep of sweeps) {
+      if (sweep.article_count === 0 && sweep.id) {
+        try {
+          const count = await redis.scard(keys.articlesBySweep(sweep.id))
+          if (count > 0) sweep.article_count = count
+        } catch {}
+      }
+    }
 
     return NextResponse.json({ sweeps, total })
   } catch (error) {

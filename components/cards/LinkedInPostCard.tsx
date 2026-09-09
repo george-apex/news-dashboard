@@ -7,17 +7,19 @@ import { TopicBadge } from '@/components/common/TopicBadge'
 import { formatTimeAgo } from '@/lib/utils/format'
 import { LinkedInIcon } from '@/components/common/LinkedInIcon'
 import { cn } from '@/lib/utils'
-import { Copy, FileText, Check } from 'lucide-react'
+import { Copy, FileText, Check, Trash2 } from 'lucide-react'
 import { apiClient } from '@/lib/api/client'
 
 export function LinkedInPostCard({
   post,
   selected,
   onClick,
+  onDelete,
 }: {
   post: LinkedInPost
   selected?: boolean
   onClick?: () => void
+  onDelete?: (post: LinkedInPost) => void
 }) {
   const [copied, setCopied] = useState(false)
 
@@ -91,6 +93,15 @@ export function LinkedInPostCard({
             >
               <FileText className="h-3 w-3" />
             </button>
+            {onDelete && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onDelete(post) }}
+                className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                title="Delete post"
+              >
+                <Trash2 className="h-3 w-3" />
+              </button>
+            )}
           </div>
         </div>
       </CardContent>

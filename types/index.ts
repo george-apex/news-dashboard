@@ -121,14 +121,21 @@ export interface MarketDataStock {
 
 export interface MacroIndicators {
   dgs10: string
+  dgs2: string
+  dgs5: string
+  dgs30: string
   vix: string
   fedfunds: string
+  unemployment: string
+  cpi: string
   updated_at: string
 }
 
 export interface MarketDataResponse {
   stocks: MarketDataStock[]
   macro: MacroIndicators | null
+  indices: MarketDataStock[]
+  sectors: MarketDataStock[]
 }
 
 export interface MarketContext {

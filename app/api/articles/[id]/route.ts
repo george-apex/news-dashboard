@@ -52,8 +52,8 @@ export async function GET(
           stocks.push({
             entity_name: sd.entity_name || '',
             ticker: sd.ticker || '',
-            latest_price: sd.latest_price || '0',
-            price_change_pct: sd.price_change_pct || '0',
+            latest_price: sd.latest_price || sd.price || '0',
+            price_change_pct: sd.price_change_pct || sd.change_pct || '0',
             price_change_direction: (sd.price_change_direction as MarketDataStock['price_change_direction']) || 'flat',
             updated_at: sd.updated_at || '',
           })
@@ -63,9 +63,14 @@ export async function GET(
       let macro: MacroIndicators | null = null
       if (macroRaw && Object.keys(macroRaw).length > 0) {
         macro = {
+          dgs2: macroRaw.dgs2 || '0',
+          dgs5: macroRaw.dgs5 || '0',
           dgs10: macroRaw.dgs10 || '0',
+          dgs30: macroRaw.dgs30 || '0',
           vix: macroRaw.vix || '0',
           fedfunds: macroRaw.fedfunds || '0',
+          unemployment: macroRaw.unemployment || '0',
+          cpi: macroRaw.cpi || '0',
           updated_at: macroRaw.updated_at || '',
         }
       }

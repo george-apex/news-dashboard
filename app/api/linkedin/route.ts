@@ -52,3 +52,24 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to fetch LinkedIn posts' }, { status: 500 })
   }
 }
+
+export async function DELETE() {
+  try {
+    const redis = getRedisClient()
+    const postIds = await redis.zrange(keys.linkedinByDate(), 0, -1) as string[]
+
+    if (postIds.length > 0) {
+      const pipeline = redis.pipeline()
+      for (const id of postIds) {
+        pipeline.del(keys.linkedin(id))
+      }
+      pipeline.del(keys.linkedinByDate())
+      await pipeline.exec()
+    }
+
+    return NextResponse.json({ success: true, deleted: postIds.length })
+  } catch (error) {
+    console.error('DELETE /api/linkedin error:', error)
+    return NextResponse.json({ error: 'Failed to delete LinkedIn posts' }, { status: 500 })
+  }
+}

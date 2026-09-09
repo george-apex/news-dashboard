@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { useTopicStats, useArticles, useSentimentTrend, useTopicDistribution, useSources, useEntities, useTrendingEntities, useCoOccurrence, useCorroborationHeatmap, useMarketData, useSweeps } from '@/lib/hooks/useApiHooks'
+import { useTopicStats, useTrendingArticles, useSentimentTrend, useTopicDistribution, useSources, useEntities, useTrendingEntities, useCorroborationHeatmap, useMarketData, useSweeps } from '@/lib/hooks/useApiHooks'
 import { KPICard } from '@/components/cards/KPICard'
 import { TrendingStoryCard } from '@/components/cards/TrendingStoryCard'
 import { TopicDonut } from '@/components/charts/TopicDonut'
@@ -11,7 +11,7 @@ import { EntityCloud } from '@/components/charts/EntityCloud'
 import { SourceBreakdownChart } from '@/components/charts/SourceBreakdownChart'
 import { CorroborationHeatmap } from '@/components/charts/CorroborationHeatmap'
 import { TrendingEntitiesChart } from '@/components/charts/TrendingEntitiesChart'
-import { EntityNetworkGraph } from '@/components/charts/EntityNetworkGraph'
+import { MarketMovers } from '@/components/charts/MarketMovers'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ErrorState } from '@/components/common/ErrorState'
 import { CheckCircle, Loader2, Clock, SkipForward, XCircle } from 'lucide-react'
@@ -45,13 +45,12 @@ export default function DashboardPage() {
   const { from, to } = useMemo(() => getDateRange(timeRange), [timeRange])
 
   const { data: topicStats, error: statsError } = useTopicStats()
-  const { data: topArticles, isLoading: articlesLoading } = useArticles({ sort: 'relevance', corroboration: 'high', limit: 5 })
+  const { data: topArticles, isLoading: articlesLoading } = useTrendingArticles(5)
   const { data: sentimentData, isLoading: sentimentLoading } = useSentimentTrend(undefined, from, to)
   const { data: topicDist, isLoading: distLoading } = useTopicDistribution()
   const { data: sourceData, isLoading: sourceLoading } = useSources()
   const { data: entityData, isLoading: entityLoading } = useEntities(undefined, undefined, 'mentions', 50)
   const { data: trendingData, isLoading: trendingLoading } = useTrendingEntities()
-  const { data: coOccurrence, isLoading: coLoading } = useCoOccurrence()
   const { data: heatmapData, isLoading: heatmapLoading } = useCorroborationHeatmap(from, to)
   const { data: marketData } = useMarketData()
   const { data: sweepsData } = useSweeps(1, 20)
@@ -191,7 +190,7 @@ export default function DashboardPage() {
                 ))}
               </div>
             ) : (
-              topArticles?.articles?.map((a) => (
+              topArticles?.articles?.map((a: any) => (
                 <TrendingStoryCard key={a.id} article={a} />
               ))
             )}
@@ -283,12 +282,12 @@ export default function DashboardPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Entity Network</CardTitle>
+            <CardTitle className="text-sm">Market Movers (7D)</CardTitle>
           </CardHeader>
           <CardContent>
-            <EntityNetworkGraph
-              data={coOccurrence}
-              loading={coLoading}
+            <MarketMovers
+              stocks={marketData?.stocks}
+              loading={!marketData}
               onEntityClick={(name) => router.push(`/feed?entity=${encodeURIComponent(name)}`)}
             />
           </CardContent>

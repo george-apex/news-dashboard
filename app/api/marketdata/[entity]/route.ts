@@ -18,8 +18,8 @@ export async function GET(
     const stock: MarketDataStock = {
       entity_name: data.entity_name || entity,
       ticker: data.ticker || '',
-      latest_price: data.latest_price || '0',
-      price_change_pct: data.price_change_pct || '0',
+      latest_price: data.latest_price || data.price || '0',
+      price_change_pct: data.price_change_pct || data.change_pct || '0',
       price_change_direction: (data.price_change_direction as MarketDataStock['price_change_direction']) || 'flat',
       updated_at: data.updated_at || '',
     }

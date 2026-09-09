@@ -73,7 +73,10 @@ export async function GET(
     const zScores = await redis.zscore(keys.sweepsByDate(), id).catch(() => null)
 
     const articleCount = Number(data.article_count || data.total_articles || 0)
-    const pipelineStages = buildPipelineStages(data, articleCount)
+    const resolvedArticleCount = articleCount === 0
+      ? await redis.scard(keys.articlesBySweep(id)).then((c) => Number(c) || 0).catch(() => 0)
+      : articleCount
+    const pipelineStages = buildPipelineStages(data, resolvedArticleCount)
 
     const sweep: SweepRecord = {
       id: data.id,
@@ -81,7 +84,7 @@ export async function GET(
       completed_at: data.completed_at || null,
       status: data.status as SweepRecord['status'],
       topics: safeParseArray(data.topics) as Topic[],
-      article_count: articleCount,
+      article_count: resolvedArticleCount,
       error: data.error || null,
       triggered_by: (data.triggered_by || 'manual') as SweepRecord['triggered_by'],
       pdf_report_url: data.pdf_report_url || null,

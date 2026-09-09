@@ -1,5 +1,5 @@
 import { useApi } from '@/lib/api/client'
-import { ArticlesResponse, ArticlesQueryParams, TopicStatsResponse, EntitiesResponse, TrendingEntitiesResponse, SentimentTrendResponse, TopicDistributionResponse, SourcesResponse, SweepsResponse, SweepRecord, LinkedInPostsResponse, LinkedInPost, HeatmapResponse, SourceQualityResponse, CoOccurrenceResponse, MarketDataResponse, MarketDataStock } from '@/types'
+import { ArticlesResponse, ArticlesQueryParams, TopicStatsResponse, EntitiesResponse, TrendingEntitiesResponse, SentimentTrendResponse, TopicDistributionResponse, SourcesResponse, SweepsResponse, SweepRecord, LinkedInPostsResponse, LinkedInPost, HeatmapResponse, SourceQualityResponse, CoOccurrenceResponse, MarketDataResponse, MarketDataStock, Article } from '@/types'
 
 function buildQuery(params: ArticlesQueryParams): string {
   const searchParams = new URLSearchParams()
@@ -23,6 +23,10 @@ function buildQuery(params: ArticlesQueryParams): string {
 
 export function useArticles(params: ArticlesQueryParams = {}, refreshInterval = 120000) {
   return useApi<ArticlesResponse>(`/articles${buildQuery(params)}`, refreshInterval)
+}
+
+export function useTrendingArticles(limit = 5) {
+  return useApi<{ articles: Article[]; total: number }>(`/articles/trending?limit=${limit}`, 120000)
 }
 
 export function useArticle(id: string | null) {

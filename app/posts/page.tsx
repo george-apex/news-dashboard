@@ -1,21 +1,23 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useLinkedInPosts, useMarketData } from '@/lib/hooks/useApiHooks'
 import { LinkedInPost, MarketDataStock } from '@/types'
 import { LinkedInPostCard } from '@/components/cards/LinkedInPostCard'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Copy, FileText, ThumbsUp, MessageCircle, Repeat2, Send } from 'lucide-react'
+import { Copy, FileText, ThumbsUp, MessageCircle, Repeat2, Send, AlertTriangle } from 'lucide-react'
 import { LinkedInIcon } from '@/components/common/LinkedInIcon'
 import { TopicBadge } from '@/components/common/TopicBadge'
 import { formatTimeAgo } from '@/lib/utils/format'
 import { ErrorState } from '@/components/common/ErrorState'
+import { apiClient } from '@/lib/api/client'
 
 export default function PostsPage() {
   const [selectedPost, setSelectedPost] = useState<LinkedInPost | null>(null)
   const [copied, setCopied] = useState(false)
-  const { data: postsData, isLoading, error: postsError } = useLinkedInPosts()
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
+  const { data: postsData, isLoading, error: postsError, mutate } = useLinkedInPosts()
   const { data: marketData } = useMarketData()
 
   const handleCopy = async (content: string) => {
@@ -57,6 +59,17 @@ export default function PostsPage() {
     }
   }
 
+  const handleDeletePost = async (post: LinkedInPost) => {
+    try {
+      await apiClient(`/linkedin/${post.id}`, { method: 'DELETE' })
+      mutate?.()
+      if (selectedPost?.id === post.id) setSelectedPost(null)
+      setDeleteConfirmId(null)
+    } catch (err) {
+      console.error('Failed to delete post:', err)
+    }
+  }
+
   return (
     <div className="p-6">
       {postsError && (
@@ -81,6 +94,7 @@ export default function PostsPage() {
                 post={post}
                 selected={selectedPost?.id === post.id}
                 onClick={() => setSelectedPost(post)}
+                onDelete={deleteConfirmId === post.id ? undefined : (p) => setDeleteConfirmId(p.id)}
               />
             ))
           )}
@@ -202,6 +216,35 @@ export default function PostsPage() {
           )}
         </div>
       </div>
+
+      {deleteConfirmId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setDeleteConfirmId(null)}>
+          <div className="bg-card border border-border rounded-lg p-6 max-w-sm shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-2 mb-3">
+              <AlertTriangle className="h-4 w-4 text-destructive" />
+              <h3 className="text-sm font-medium">Delete Post?</h3>
+            </div>
+            <p className="text-xs text-muted-foreground mb-4">This cannot be undone. The post will be permanently removed.</p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setDeleteConfirmId(null)}
+                className="px-3 py-1.5 text-xs rounded-md border border-border hover:bg-muted transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  const post = postsData?.posts?.find((p) => p.id === deleteConfirmId)
+                  if (post) handleDeletePost(post)
+                }}
+                className="px-3 py-1.5 text-xs rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
