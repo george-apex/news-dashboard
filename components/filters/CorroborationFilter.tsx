@@ -9,8 +9,9 @@ export function CorroborationFilter() {
 
   return (
     <Select value={corroboration || 'all'} onValueChange={(v) => setFilter('corroboration', v === 'all' ? null : v as CorroborationLevel)}>
-      <SelectTrigger className="w-36 h-8 text-xs">
-        <SelectValue placeholder="Corroboration" />
+      <SelectTrigger className="w-44 h-8 text-xs gap-1">
+        <span className="text-muted-foreground">Corroboration:</span>
+        <SelectValue />
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="all">All Levels</SelectItem>
