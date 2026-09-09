@@ -3,6 +3,8 @@ import { getRedisClient, keys } from '@/lib/redis'
 import { TOPICS } from '@/lib/utils/constants'
 import { Topic } from '@/types'
 
+export const revalidate = 120
+
 export async function GET(request: NextRequest) {
   try {
     const redis = getRedisClient()

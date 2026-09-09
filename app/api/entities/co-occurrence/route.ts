@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { getRedisClient, keys } from '@/lib/redis'
 import { EntityStat } from '@/types'
 
+export const revalidate = 120
+
 export async function GET() {
   try {
     const redis = getRedisClient()

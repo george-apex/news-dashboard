@@ -3,6 +3,8 @@ import { getRedisClient, keys } from '@/lib/redis'
 import { Topic, CorroborationLevel, Article } from '@/types'
 import { safeParseArray } from '@/lib/utils'
 
+export const revalidate = 120
+
 export async function GET(request: NextRequest) {
   try {
     const redis = getRedisClient()

@@ -3,6 +3,8 @@ import { getRedisClient, keys } from '@/lib/redis'
 import { Topic, Article, MarketDataStock, MacroIndicators, MarketContext } from '@/types'
 import { safeParseArray } from '@/lib/utils'
 
+export const revalidate = 120
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
