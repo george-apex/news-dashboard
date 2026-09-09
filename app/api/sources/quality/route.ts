@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getRedisClient, keys } from '@/lib/redis'
 
 export const revalidate = 120
+export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {

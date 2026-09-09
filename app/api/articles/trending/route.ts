@@ -4,6 +4,7 @@ import { Topic, Article } from '@/types'
 import { safeParseArray } from '@/lib/utils'
 
 export const revalidate = 120
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
@@ -45,7 +46,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ articles, total: articles.length })
   } catch (error) {
     console.error('GET /api/articles/trending error:', error)
-    const message = error instanceof Error ? error.message : String(error)
-    return NextResponse.json({ error: 'Failed to fetch trending articles', detail: message }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to fetch trending articles' }, { status: 500 })
   }
 }

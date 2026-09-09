@@ -5,6 +5,7 @@ import { Topic, TopicStat } from '@/types'
 import { safeParseArray } from '@/lib/utils'
 
 export const revalidate = 120
+export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {

@@ -4,6 +4,7 @@ import { Topic, ArticleSearchResult } from '@/types'
 import { safeParseArray } from '@/lib/utils'
 
 export const revalidate = 0
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {

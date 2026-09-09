@@ -3,6 +3,7 @@ import { getRedisClient, keys } from '@/lib/redis'
 import { Topic } from '@/types'
 
 export const revalidate = 120
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {

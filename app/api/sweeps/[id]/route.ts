@@ -4,6 +4,7 @@ import { SweepRecord, PipelineStageInfo, StageStatus, Topic } from '@/types'
 import { safeParseArray } from '@/lib/utils'
 
 export const revalidate = 120
+export const dynamic = 'force-dynamic'
 
 function computeDuration(start: string | null | undefined, end: string | null | undefined): number | null {
   if (!start || !end) return null

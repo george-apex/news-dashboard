@@ -4,6 +4,7 @@ import { SweepRecord, Topic } from '@/types'
 import { safeParseArray } from '@/lib/utils'
 
 export const revalidate = 120
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {

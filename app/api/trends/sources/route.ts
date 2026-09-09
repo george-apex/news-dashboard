@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getRedisClient, keys } from '@/lib/redis'
 
 export const revalidate = 120
+export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {
@@ -30,7 +31,6 @@ export async function GET() {
     return NextResponse.json({ data })
   } catch (error) {
     console.error('GET /api/trends/sources error:', error)
-    const message = error instanceof Error ? error.message : String(error)
-    return NextResponse.json({ error: 'Failed to fetch sources', detail: message }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to fetch sources' }, { status: 500 })
   }
 }

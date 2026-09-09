@@ -4,6 +4,7 @@ import { Topic, CorroborationLevel, Article } from '@/types'
 import { safeParseArray } from '@/lib/utils'
 
 export const revalidate = 120
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
@@ -146,7 +147,6 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error('GET /api/articles error:', error)
-    const message = error instanceof Error ? error.message : String(error)
-    return NextResponse.json({ error: 'Failed to fetch articles', detail: message }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to fetch articles' }, { status: 500 })
   }
 }
