@@ -30,6 +30,7 @@ export async function GET() {
     return NextResponse.json({ data })
   } catch (error) {
     console.error('GET /api/trends/sources error:', error)
-    return NextResponse.json({ error: 'Failed to fetch sources' }, { status: 500 })
+    const message = error instanceof Error ? error.message : String(error)
+    return NextResponse.json({ error: 'Failed to fetch sources', detail: message }, { status: 500 })
   }
 }

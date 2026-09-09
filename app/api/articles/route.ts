@@ -146,6 +146,7 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error('GET /api/articles error:', error)
-    return NextResponse.json({ error: 'Failed to fetch articles' }, { status: 500 })
+    const message = error instanceof Error ? error.message : String(error)
+    return NextResponse.json({ error: 'Failed to fetch articles', detail: message }, { status: 500 })
   }
 }

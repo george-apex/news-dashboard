@@ -45,6 +45,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ articles, total: articles.length })
   } catch (error) {
     console.error('GET /api/articles/trending error:', error)
-    return NextResponse.json({ error: 'Failed to fetch trending articles' }, { status: 500 })
+    const message = error instanceof Error ? error.message : String(error)
+    return NextResponse.json({ error: 'Failed to fetch trending articles', detail: message }, { status: 500 })
   }
 }
