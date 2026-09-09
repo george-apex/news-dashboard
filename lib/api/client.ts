@@ -3,7 +3,7 @@ import useSWR, { mutate } from 'swr'
 const ARRAY_FIELDS = [
   'articles', 'topics', 'entities', 'sweeps', 'posts', 'stocks',
   'data', 'sources', 'rows', 'cols', 'nodes', 'links', 'pipeline_stages',
-  'top_entities', 'indices', 'sectors',
+  'top_entities', 'indices', 'sectors', 'profiles',
 ]
 
 function normalize<T>(obj: unknown): T {

@@ -2,12 +2,12 @@
 
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { useTopicStats, useTrendingArticles, useSentimentTrend, useTopicDistribution, useSources, useEntities, useTrendingEntities, useCorroborationHeatmap, useMarketData, useSweeps } from '@/lib/hooks/useApiHooks'
+import { useTopicStats, useTrendingArticles, useSentimentTrend, useTopicDistribution, useSources, useEntityProfiles, useTrendingEntities, useCorroborationHeatmap, useMarketData, useSweeps } from '@/lib/hooks/useApiHooks'
 import { KPICard } from '@/components/cards/KPICard'
 import { TrendingStoryCard } from '@/components/cards/TrendingStoryCard'
 import { TopicDonut } from '@/components/charts/TopicDonut'
 import { SentimentTrendChart } from '@/components/charts/SentimentTrendChart'
-import { EntityCloud } from '@/components/charts/EntityCloud'
+import { SearchBar } from '@/components/common/SearchBar'
 import { SourceBreakdownChart } from '@/components/charts/SourceBreakdownChart'
 import { CorroborationHeatmap } from '@/components/charts/CorroborationHeatmap'
 import { TrendingEntitiesChart } from '@/components/charts/TrendingEntitiesChart'
@@ -49,7 +49,7 @@ export default function DashboardPage() {
   const { data: sentimentData, isLoading: sentimentLoading } = useSentimentTrend(undefined, from, to)
   const { data: topicDist, isLoading: distLoading } = useTopicDistribution()
   const { data: sourceData, isLoading: sourceLoading } = useSources()
-  const { data: entityData, isLoading: entityLoading } = useEntities(undefined, undefined, 'mentions', 50)
+  const { data: entityProfiles, isLoading: entityLoading } = useEntityProfiles()
   const { data: trendingData, isLoading: trendingLoading } = useTrendingEntities()
   const { data: heatmapData, isLoading: heatmapLoading } = useCorroborationHeatmap(from, to)
   const { data: marketData } = useMarketData()
@@ -76,18 +76,21 @@ export default function DashboardPage() {
         <ErrorState message="Failed to load dashboard data. Please check your connection." onRetry={() => window.location.reload()} />
       )}
 
-      {marketData?.macro && (
-        <div className="flex items-center gap-4 text-xs px-1">
-          <span className="text-muted-foreground">VIX:</span>
-          <span className={parseFloat(marketData.macro.vix) < 20 ? 'text-emerald-600 font-medium' : parseFloat(marketData.macro.vix) > 30 ? 'text-red-600 font-medium' : 'text-amber-600 font-medium'}>
-            {marketData.macro.vix}
-          </span>
-          <span className="text-muted-foreground">10Y:</span>
-          <span className="text-foreground font-medium">{marketData.macro.dgs10}%</span>
-          <span className="text-muted-foreground">Fed:</span>
-          <span className="text-foreground font-medium">{marketData.macro.fedfunds}%</span>
-        </div>
-      )}
+      <div className="flex items-center gap-4">
+        <SearchBar />
+        {marketData?.macro && (
+          <div className="flex items-center gap-4 text-xs px-1">
+            <span className="text-muted-foreground">VIX:</span>
+            <span className={parseFloat(marketData.macro.vix) < 20 ? 'text-emerald-600 font-medium' : parseFloat(marketData.macro.vix) > 30 ? 'text-red-600 font-medium' : 'text-amber-600 font-medium'}>
+              {marketData.macro.vix}
+            </span>
+            <span className="text-muted-foreground">10Y:</span>
+            <span className="text-foreground font-medium">{marketData.macro.dgs10}%</span>
+            <span className="text-muted-foreground">Fed:</span>
+            <span className="text-foreground font-medium">{marketData.macro.fedfunds}%</span>
+          </div>
+        )}
+      </div>
 
       {runningSweep && runningSweep.pipeline_stages && runningSweep.pipeline_stages.length > 0 && (
         <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 text-xs">
@@ -225,14 +228,39 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Entity Cloud</CardTitle>
+            <CardTitle className="text-sm">Top Entities</CardTitle>
           </CardHeader>
           <CardContent>
-            <EntityCloud
-              data={entityData}
-              loading={entityLoading}
-              onEntityClick={(name) => router.push(`/feed?entity=${encodeURIComponent(name)}`)}
-            />
+            {entityLoading ? (
+              <div className="space-y-2">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="h-5 bg-muted animate-pulse rounded" />
+                ))}
+              </div>
+            ) : (entityProfiles?.profiles ?? []).length === 0 ? (
+              <div className="text-xs text-muted-foreground py-4 text-center">No entity data</div>
+            ) : (
+              <div className="space-y-1.5">
+                {(entityProfiles?.profiles ?? []).slice(0, 5).map((p) => (
+                  <button
+                    key={p.name}
+                    onClick={() => router.push(`/feed?entity=${encodeURIComponent(p.name)}`)}
+                    className="w-full flex items-center justify-between text-left hover:bg-muted/50 rounded px-1 py-0.5 transition-colors"
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-xs font-medium truncate">{p.name}</span>
+                      {p.ticker && <span className="text-[10px] text-muted-foreground">{p.ticker}</span>}
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0 text-[10px]">
+                      <span className="text-muted-foreground">{p.mention_count} mentions</span>
+                      <span className={p.avg_sentiment > 0.1 ? 'text-emerald-600' : p.avg_sentiment < -0.1 ? 'text-red-600' : 'text-muted-foreground'}>
+                        {p.avg_sentiment >= 0 ? '+' : ''}{p.avg_sentiment.toFixed(1)}
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
         <Card className="lg:col-span-2">

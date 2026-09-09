@@ -1,5 +1,5 @@
 import { useApi } from '@/lib/api/client'
-import { ArticlesResponse, ArticlesQueryParams, TopicStatsResponse, EntitiesResponse, TrendingEntitiesResponse, SentimentTrendResponse, TopicDistributionResponse, SourcesResponse, SweepsResponse, SweepRecord, LinkedInPostsResponse, LinkedInPost, HeatmapResponse, SourceQualityResponse, CoOccurrenceResponse, MarketDataResponse, MarketDataStock, Article } from '@/types'
+import { ArticlesResponse, ArticlesQueryParams, TopicStatsResponse, EntitiesResponse, TrendingEntitiesResponse, SentimentTrendResponse, TopicDistributionResponse, SourcesResponse, SweepsResponse, SweepRecord, LinkedInPostsResponse, LinkedInPost, HeatmapResponse, SourceQualityResponse, CoOccurrenceResponse, MarketDataResponse, MarketDataStock, Article, EntityProfilesResponse, ArticleSearchResponse } from '@/types'
 
 function buildQuery(params: ArticlesQueryParams): string {
   const searchParams = new URLSearchParams()
@@ -108,4 +108,15 @@ export function useMarketData() {
 
 export function useMarketDataEntity(entity: string | null) {
   return useApi<MarketDataStock>(entity ? `/marketdata/${entity}` : null, 300000)
+}
+
+export function useEntityProfiles() {
+  return useApi<EntityProfilesResponse>('/entities/profiles', 300000)
+}
+
+export function useArticleSearch(query: string | null) {
+  return useApi<ArticleSearchResponse>(
+    query && query.length >= 2 ? `/articles/search?q=${encodeURIComponent(query)}` : null,
+    0
+  )
 }

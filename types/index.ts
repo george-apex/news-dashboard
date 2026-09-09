@@ -251,3 +251,48 @@ export interface ExportPdfBody {
   date_from: string
   date_to: string
 }
+
+export interface EntityHeadline {
+  title: string
+  url: string
+  relevance_score: number
+}
+
+export interface EntityProfile {
+  name: string
+  ticker: string
+  latest_price: number
+  price_change_pct: number
+  price_change_direction: 'up' | 'down' | 'flat'
+  mention_count: number
+  avg_sentiment: number
+  top_headlines: EntityHeadline[]
+  sentiment_trend: number[]
+  price_trend: number[]
+  correlation: 'aligned' | 'divergent' | 'neutral'
+  topics: string[]
+  updated_at: string
+}
+
+export interface EntityProfilesResponse {
+  profiles: EntityProfile[]
+}
+
+export interface ArticleSearchResult {
+  id: string
+  title: string
+  url: string
+  source: string
+  date: string
+  topic: Topic
+  relevance_score: number
+  sentiment_score: number
+  corroboration_score: string | number
+  summary: string | null
+  entities: Entity[]
+}
+
+export interface ArticleSearchResponse {
+  articles: ArticleSearchResult[]
+  total: number
+}

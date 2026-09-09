@@ -32,4 +32,5 @@ export const keys = {
   marketdataByEntity: () => 'nid:marketdata:by_entity',
   marketdataSweep: (sweepId: string) => `nid:marketdata:sweep:${sweepId}`,
   marketdataMacro: () => 'nid:marketdata:macro',
+  entityProfile: (name: string) => `nid:entity:profile:${name}`,
 }
