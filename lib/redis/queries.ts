@@ -4,22 +4,17 @@ import { Article, Topic, EntityStat, SweepRecord } from '@/types'
 
 export async function getArticle(id: string): Promise<Article | null> {
   const redis = getRedisClient()
-  const data = await redis.hgetall<Record<string, string>>(keys.article(id))
-  if (!data || Object.keys(data).length === 0) return null
+  const data = await readArticleKey(redis, id)
+  if (!data) return null
   return deserializeArticle(data)
 }
 
 export async function getArticlesByIds(ids: string[]): Promise<Article[]> {
   if (ids.length === 0) return []
-  const redis = getRedisClient()
-  const pipeline = redis.pipeline()
-  for (const id of ids) {
-    pipeline.hgetall(keys.article(id))
-  }
-  const results = await pipeline.exec<Record<string, string>[]>()
-  return results
-    .filter((r) => r && Object.keys(r).length > 0)
-    .map(deserializeArticle)
+  const dataMap = await readArticleKeys(ids)
+  return ids
+    .filter((id) => dataMap.has(id))
+    .map((id) => deserializeArticle(dataMap.get(id)!))
 }
 
 export async function getArticlesByDateRange(
@@ -58,7 +53,11 @@ export async function getArticleIdsBySource(source: string): Promise<string[]> {
 
 export async function getArticleIdsByEntity(entity: string): Promise<string[]> {
   const redis = getRedisClient()
-  return redis.zrange(keys.entityArticles(entity), 0, -1, { rev: true }) as Promise<string[]>
+  const keyType = await redis.type(keys.entityArticles(entity))
+  if (keyType === 'zset') {
+    return redis.zrange(keys.entityArticles(entity), 0, -1, { rev: true }) as Promise<string[]>
+  }
+  return redis.smembers(keys.entityArticles(entity)) as Promise<string[]>
 }
 
 export async function getSweep(id: string): Promise<SweepRecord | null> {
@@ -120,23 +119,98 @@ export async function getLinkedInPost(id: string) {
   return redis.hgetall<Record<string, string>>(keys.linkedin(id))
 }
 
-function deserializeArticle(data: Record<string, string>): Article {
+export async function readArticleKey(redis: ReturnType<typeof getRedisClient>, id: string): Promise<Record<string, unknown> | null> {
+  const key = keys.article(id)
+  const keyType = await redis.type(key)
+  if (keyType === 'string') {
+    const raw = await redis.get(key)
+    if (!raw) return null
+    return typeof raw === 'string' ? JSON.parse(raw) : (raw as Record<string, unknown>)
+  }
+  if (keyType === 'hash') {
+    const data = await redis.hgetall<Record<string, string>>(key)
+    if (!data || Object.keys(data).length === 0) return null
+    return data as unknown as Record<string, unknown>
+  }
+  return null
+}
+
+async function readMixedKeys(redis: ReturnType<typeof getRedisClient>, keyFn: (id: string) => string, ids: string[]): Promise<Map<string, Record<string, unknown>>> {
+  const result = new Map<string, Record<string, unknown>>()
+  if (ids.length === 0) return result
+
+  const typePipeline = redis.pipeline()
+  for (const id of ids) {
+    typePipeline.type(keyFn(id))
+  }
+  const types = await typePipeline.exec<string[]>()
+
+  const stringIds: string[] = []
+  const hashIds: string[] = []
+  for (let i = 0; i < ids.length; i++) {
+    if (types[i] === 'string') stringIds.push(ids[i])
+    else if (types[i] === 'hash') hashIds.push(ids[i])
+  }
+
+  if (stringIds.length > 0) {
+    const pipe = redis.pipeline()
+    for (const id of stringIds) pipe.get(keyFn(id))
+    const raws = await pipe.exec<(string | null)[]>()
+    for (let i = 0; i < stringIds.length; i++) {
+      if (raws[i] != null) {
+        const parsed = typeof raws[i] === 'string' ? JSON.parse(raws[i]!) : raws[i]
+        result.set(stringIds[i], parsed as Record<string, unknown>)
+      }
+    }
+  }
+
+  if (hashIds.length > 0) {
+    const pipe = redis.pipeline()
+    for (const id of hashIds) pipe.hgetall(keyFn(id))
+    const raws = await pipe.exec<Record<string, string>[]>()
+    for (let i = 0; i < hashIds.length; i++) {
+      if (raws[i] && Object.keys(raws[i]).length > 0) {
+        result.set(hashIds[i], raws[i] as unknown as Record<string, unknown>)
+      }
+    }
+  }
+
+  return result
+}
+
+export async function readArticleKeys(ids: string[]): Promise<Map<string, Record<string, unknown>>> {
+  const redis = getRedisClient()
+  return readMixedKeys(redis, keys.article, ids)
+}
+
+export async function readArticleKeysOrdered(ids: string[]): Promise<Record<string, unknown>[]> {
+  const dataMap = await readArticleKeys(ids)
+  return ids.filter((id) => dataMap.has(id)).map((id) => dataMap.get(id)!)
+}
+
+export async function readSourceQualityKeys(ids: string[]): Promise<Map<string, Record<string, unknown>>> {
+  const redis = getRedisClient()
+  return readMixedKeys(redis, keys.sourceQuality, ids)
+}
+
+function deserializeArticle(data: Record<string, unknown>): Article {
+  const entities = data.entities
   return {
-    id: data.id,
-    title: data.title,
-    url: data.url,
-    date: data.date,
-    source: data.source,
-    source_type: data.source_type as Article['source_type'],
-    relevance_score: Number(data.relevance_score),
-    corroboration_score: data.corroboration_score as Article['corroboration_score'],
-    source_count: Number(data.source_count),
-    sentiment_score: Number(data.sentiment_score),
-    entities: typeof data.entities === 'string' ? JSON.parse(data.entities) : [],
-    topic: data.topic as Topic,
-    summary: data.summary || null,
-    fetched_at: data.fetched_at,
-    sweep_id: data.sweep_id,
+    id: String(data.id ?? ''),
+    title: String(data.title ?? ''),
+    url: String(data.url ?? ''),
+    date: String(data.date ?? ''),
+    source: String(data.source ?? ''),
+    source_type: String(data.source_type ?? '') as Article['source_type'],
+    relevance_score: Number(data.relevance_score) || 0,
+    corroboration_score: String(data.corroboration_score ?? 'low') as Article['corroboration_score'],
+    source_count: Number(data.source_count) || 0,
+    sentiment_score: Number(data.sentiment_score) || 0,
+    entities: typeof entities === 'string' ? JSON.parse(entities) : Array.isArray(entities) ? entities : [],
+    topic: String(data.topic ?? '') as Topic,
+    summary: data.summary ? String(data.summary) : null,
+    fetched_at: String(data.fetched_at ?? ''),
+    sweep_id: String(data.sweep_id ?? ''),
   }
 }
 

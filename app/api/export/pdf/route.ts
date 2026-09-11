@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { ExportPdfBody } from '@/types'
 import { getRedisClient, keys } from '@/lib/redis'
+import { readArticleKeys } from '@/lib/redis/queries'
 import { TOPICS, TOPIC_LABELS } from '@/lib/utils/constants'
 
 export async function POST(request: NextRequest) {
@@ -121,10 +122,8 @@ export async function POST(request: NextRequest) {
 
     const articleIds = await redis.zrange(keys.articlesByRelevance(), 0, 9, { rev: true }) as string[]
     if (articleIds.length > 0) {
-      const pipeline = redis.pipeline()
-      for (const id of articleIds) pipeline.hgetall(keys.article(id))
-      const results = await pipeline.exec<Record<string, string>[]>()
-      const articles = results.filter((r) => r && Object.keys(r).length > 0)
+      const dataMap = await readArticleKeys(articleIds)
+      const articles = articleIds.filter((id) => dataMap.has(id)).map((id) => dataMap.get(id)!)
 
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(9)
@@ -141,13 +140,14 @@ export async function POST(request: NextRequest) {
       doc.setFont('helvetica', 'normal')
       articles.slice(0, 10).forEach((a, i) => {
         addPageIfNeeded(10)
-        const title = (a.title || '').substring(0, 45)
+        const d = a as Record<string, any>
+        const title = (d.title || '').substring(0, 45)
         doc.text(`${i + 1}`, margin, y)
         doc.text(title, margin + 8, y)
-        doc.text((a.source || '').substring(0, 15), margin + 100, y)
-        doc.text(Number(a.sentiment_score || 0).toFixed(2), margin + 140, y)
-        doc.text(String(a.relevance_score || 0), margin + 160, y)
-        doc.text(a.corroboration_score || '—', margin + 175, y)
+        doc.text((d.source || '').substring(0, 15), margin + 100, y)
+        doc.text(Number(d.sentiment_score || 0).toFixed(2), margin + 140, y)
+        doc.text(String(d.relevance_score || 0), margin + 160, y)
+        doc.text(d.corroboration_score || '—', margin + 175, y)
         y += 6
       })
     } else {

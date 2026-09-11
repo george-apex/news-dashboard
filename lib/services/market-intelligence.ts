@@ -1,33 +1,29 @@
 import { getRedisClient } from '@/lib/redis'
 import { keys } from '@/lib/redis'
+import { readArticleKey, readArticleKeys } from '@/lib/redis/queries'
 import { TOPICS } from '@/lib/utils/constants'
 import { EntityProfile, MarketDataStock } from '@/types'
 
 export async function getEntityDashboard(name: string) {
   const redis = getRedisClient()
   const pipeline = redis.pipeline()
-
+  pipeline.smembers(keys.entityArticles(name))
   pipeline.hgetall(keys.entityProfile(name))
   pipeline.hgetall(keys.entity(name))
   pipeline.hgetall(keys.marketdataEntity(name))
-  pipeline.zrange(keys.entityArticles(name), 0, 19, { rev: true })
   pipeline.get(keys.marketdataOhlcv(name))
 
   const results = await pipeline.exec<any[]>()
-  const profileData = results[0] as Record<string, string> | null
-  const statData = results[1] as Record<string, string> | null
-  const marketData = results[2] as Record<string, string> | null
-  const articleIds = (results[3] as string[]) || []
+  const articleIds = (results[0] as string[]) || []
+  const profileData = results[1] as Record<string, string> | null
+  const statData = results[2] as Record<string, string> | null
+  const marketData = results[3] as Record<string, string> | null
   const ohlcv7d = (results[4] as string) || null
 
   let articles: any[] = []
   if (articleIds.length > 0) {
-    const artPipeline = redis.pipeline()
-    for (const id of articleIds) {
-      artPipeline.hgetall(keys.article(id))
-    }
-    const artResults = await artPipeline.exec<Record<string, string>[]>()
-    articles = artResults.filter(r => r && Object.keys(r).length > 0)
+    const dataMap = await readArticleKeys(articleIds)
+    articles = articleIds.filter(id => dataMap.has(id)).map(id => dataMap.get(id)!)
   }
 
   const relatedEntityNames = new Map<string, number>()
@@ -60,11 +56,12 @@ export async function getEntityDashboard(name: string) {
 
 export async function getArticleWithMarketData(articleId: string) {
   const redis = getRedisClient()
-  const articleData = await redis.hgetall<Record<string, string>>(keys.article(articleId))
-  if (!articleData || Object.keys(articleData).length === 0) return null
+  const articleData = await readArticleKey(redis, articleId)
+  if (!articleData) return null
+  const ad = articleData as Record<string, any>
 
   let marketDataStocks: MarketDataStock[] = []
-  const refsRaw = articleData.market_data_refs
+  const refsRaw = ad.market_data_refs
   if (refsRaw) {
     try {
       const refs = JSON.parse(refsRaw) as { ticker: string; entity: string; tier: string }[]
@@ -90,7 +87,7 @@ export async function getArticleWithMarketData(articleId: string) {
 
   if (marketDataStocks.length === 0) {
     try {
-      const entities = JSON.parse(articleData.entities || '[]') as { name: string; type: string }[]
+      const entities = JSON.parse(ad.entities || '[]') as { name: string; type: string }[]
       if (entities.length > 0) {
         const pipeline = redis.pipeline()
         for (const e of entities) {
@@ -114,8 +111,8 @@ export async function getArticleWithMarketData(articleId: string) {
   return {
     article: articleData,
     marketData: marketDataStocks,
-    financialRelevance: Number(articleData.financial_relevance) || 0,
-    hasMarketData: articleData.has_market_data === 'true',
+    financialRelevance: Number(ad.financial_relevance) || 0,
+    hasMarketData: ad.has_market_data === 'true',
   }
 }
 
@@ -125,22 +122,20 @@ export async function getSignalBoard(threshold: number = 75) {
   const articleIds = await redis.zrange(keys.articlesByRelevance(), 0, 199, { rev: true }) as string[]
   if (!articleIds || articleIds.length === 0) return []
 
-  const pipeline = redis.pipeline()
-  for (const id of articleIds) {
-    pipeline.hgetall(keys.article(id))
-  }
-  const results = await pipeline.exec<Record<string, string>[]>()
-  const articles = results.filter(r => r && Object.keys(r).length > 0)
+  const dataMap = await readArticleKeys(articleIds)
+  const articles = articleIds.filter(id => dataMap.has(id)).map(id => dataMap.get(id)!)
 
   const filtered = articles.filter(a => {
-    const rel = Number(a.relevance_score) || 0
-    return rel >= threshold && a.has_market_data === 'true'
+    const d = a as Record<string, any>
+    const rel = Number(d.relevance_score) || 0
+    return rel >= threshold && d.has_market_data === 'true'
   })
 
   const entityNames = new Set<string>()
   for (const a of filtered) {
     try {
-      const refs = JSON.parse(a.market_data_refs || '[]')
+      const d = a as Record<string, any>
+      const refs = JSON.parse(d.market_data_refs || '[]')
       for (const ref of refs) {
         if (ref.entity) entityNames.add(ref.entity)
       }
@@ -187,19 +182,20 @@ export async function getSignalBoard(threshold: number = 75) {
 
 export async function getRelatedArticles(articleId: string, limit: number = 10) {
   const redis = getRedisClient()
-  const article = await redis.hgetall<Record<string, string>>(keys.article(articleId))
-  if (!article || Object.keys(article).length === 0) return []
+  const article = await readArticleKey(redis, articleId)
+  if (!article) return []
+  const ar = article as Record<string, any>
 
-  const articleTopic = article.topic
+  const articleTopic = ar.topic
   let articleEntities: { name: string; type: string }[] = []
   try {
-    articleEntities = JSON.parse(article.entities || '[]')
+    articleEntities = JSON.parse(ar.entities || '[]')
   } catch {}
 
   const candidateIds = new Map<string, number>()
 
   for (const e of articleEntities) {
-    const ids = await redis.zrange(keys.entityArticles(e.name), 0, 49, { rev: true }) as string[]
+    const ids = await redis.smembers(keys.entityArticles(e.name)) as string[]
     for (const id of ids) {
       if (id === articleId) continue
       candidateIds.set(id, (candidateIds.get(id) || 0) + 1)
@@ -212,26 +208,26 @@ export async function getRelatedArticles(articleId: string, limit: number = 10) 
 
   if (sortedCandidates.length === 0) return []
 
-  const pipeline = redis.pipeline()
-  for (const [id] of sortedCandidates) {
-    pipeline.hgetall(keys.article(id))
-  }
-  const results = await pipeline.exec<Record<string, string>[]>()
-  const relatedArticles = results
-    .filter(r => r && Object.keys(r).length > 0)
-    .map((data, i) => ({
-      id: data.id,
-      title: data.title,
-      url: data.url,
-      date: data.date,
-      source: data.source,
-      topic: data.topic,
-      relevance_score: Number(data.relevance_score) || 0,
-      sentiment_score: Number(data.sentiment_score) || 0,
-      shared_entities: sortedCandidates[i][1],
-      topic_match: data.topic === articleTopic ? 1 : 0,
-      score: sortedCandidates[i][1] + (data.topic === articleTopic ? 1 : 0),
-    }))
+  const relatedIds = sortedCandidates.map(([id]) => id)
+  const relDataMap = await readArticleKeys(relatedIds)
+  const relatedArticles = relatedIds
+    .filter((id) => relDataMap.has(id))
+    .map((id, i) => {
+      const data = relDataMap.get(id)!
+      return {
+        id: String(data.id ?? ''),
+        title: String(data.title ?? ''),
+        url: String(data.url ?? ''),
+        date: String(data.date ?? ''),
+        source: String(data.source ?? ''),
+        topic: String(data.topic ?? ''),
+        relevance_score: Number(data.relevance_score) || 0,
+        sentiment_score: Number(data.sentiment_score) || 0,
+        shared_entities: sortedCandidates[i][1],
+        topic_match: String(data.topic ?? '') === articleTopic ? 1 : 0,
+        score: sortedCandidates[i][1] + (String(data.topic ?? '') === articleTopic ? 1 : 0),
+      }
+    })
     .sort((a, b) => b.score - a.score)
     .slice(0, limit)
 
@@ -317,7 +313,7 @@ export async function getHeatmapData() {
     const batch = entityNames.slice(i, i + 10)
     const pipeline = redis.pipeline()
     for (const name of batch) {
-      pipeline.zrange(keys.entityArticles(name), 0, -1, { rev: true })
+      pipeline.smembers(keys.entityArticles(name))
     }
     const articleIdBatches = await pipeline.exec<string[][]>()
 
@@ -326,20 +322,17 @@ export async function getHeatmapData() {
       const artIds = articleIdBatches[j] || []
       if (artIds.length === 0) continue
 
-      const artPipeline = redis.pipeline()
-      for (const id of artIds.slice(0, 50)) {
-        artPipeline.hgetall(keys.article(id))
-      }
-      const artResults = await artPipeline.exec<Record<string, string>[]>()
-      const arts = artResults.filter(r => r && Object.keys(r).length > 0)
+      const artDataMap = await readArticleKeys(artIds.slice(0, 50))
+      const arts = artIds.filter(id => artDataMap.has(id)).map(id => artDataMap.get(id)!)
 
       for (const a of arts) {
-        const topic = a.topic
+        const d = a as Record<string, any>
+        const topic = String(d.topic ?? '')
         if (!topic) continue
         if (!cells[topic]) cells[topic] = {}
         if (!cells[topic][entityName]) cells[topic][entityName] = { count: 0, avg_sentiment: 0 }
         cells[topic][entityName].count += 1
-        cells[topic][entityName].avg_sentiment += Number(a.sentiment_score) || 0
+        cells[topic][entityName].avg_sentiment += Number(d.sentiment_score) || 0
       }
 
       for (const topic in cells) {

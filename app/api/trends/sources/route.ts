@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getRedisClient, keys } from '@/lib/redis'
+import { readSourceQualityKeys } from '@/lib/redis/queries'
 
 export const revalidate = 120
 export const dynamic = 'force-dynamic'
@@ -13,20 +14,19 @@ export async function GET() {
       return NextResponse.json({ data: [] })
     }
 
-    const pipeline = redis.pipeline()
-    for (const name of sourceNames) {
-      pipeline.hgetall(keys.sourceQuality(name))
-    }
-    const results = await pipeline.exec<Record<string, string>[]>()
-    const data = results
-      .filter((r) => r && Object.keys(r).length > 0)
-      .map((d) => ({
-        source: d.source,
-        source_type: d.source_type,
-        count: Number(d.total_articles),
-        avg_relevance: Number(d.avg_relevance),
-        avg_sentiment: Number(d.avg_sentiment),
-      }))
+    const dataMap = await readSourceQualityKeys(sourceNames)
+    const data = sourceNames
+      .filter((name) => dataMap.has(name))
+      .map((name) => {
+        const d = dataMap.get(name)!
+        return {
+          source: String(d.source ?? name),
+          source_type: String(d.source_type ?? ''),
+          count: Number(d.total_articles) || 0,
+          avg_relevance: Number(d.avg_relevance) || 0,
+          avg_sentiment: Number(d.avg_sentiment) || 0,
+        }
+      })
 
     return NextResponse.json({ data })
   } catch (error) {
