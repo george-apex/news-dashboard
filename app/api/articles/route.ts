@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (entity) {
-      const ids = await redis.smembers(keys.entityArticles(entity))
+      const ids = await redis.zrange(keys.entityArticles(entity), 0, -1, { rev: true })
       articleIds = intersect(articleIds, ids as string[])
     }
 

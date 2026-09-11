@@ -33,4 +33,13 @@ export const keys = {
   marketdataSweep: (sweepId: string) => `nid:marketdata:sweep:${sweepId}`,
   marketdataMacro: () => 'nid:marketdata:macro',
   entityProfile: (name: string) => `nid:entity:profile:${name}`,
+  marketdataArticles: (ticker: string) => `nid:marketdata:${ticker}:articles`,
+  articlesByFinancialRelevance: () => 'nid:articles:by_financial_relevance',
+  articlesHighRelevance: () => 'nid:articles:high_relevance',
+  entitiesByFinancialRelevance: () => 'nid:entities:by_financial_relevance',
+  marketdataOhlcv: (name: string) => `nid:marketdata:${name}:ohlcv_7d`,
+  marketdataCache: (ticker: string) => `nid:marketdata:cache:${ticker}`,
+  marketdataSector: (etf: string) => `nid:marketdata:sector:${etf}`,
+  heatmapTopicEntity: () => 'nid:heatmap:topic_entity',
+  heatmapCorroboration: () => 'nid:heatmap:corroboration',
 }

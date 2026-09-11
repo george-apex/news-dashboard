@@ -58,7 +58,7 @@ export async function getArticleIdsBySource(source: string): Promise<string[]> {
 
 export async function getArticleIdsByEntity(entity: string): Promise<string[]> {
   const redis = getRedisClient()
-  return redis.smembers(keys.entityArticles(entity)) as Promise<string[]>
+  return redis.zrange(keys.entityArticles(entity), 0, -1, { rev: true }) as Promise<string[]>
 }
 
 export async function getSweep(id: string): Promise<SweepRecord | null> {

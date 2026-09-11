@@ -39,6 +39,10 @@ export async function GET() {
         correlation: (data.correlation as EntityProfile['correlation']) || 'neutral',
         topics: safeParseArray(data.topics) as string[],
         updated_at: data.updated_at || '',
+        sector: data.sector || '',
+        tier: (data.tier as EntityProfile['tier']) || 'none',
+        correlation_raw: parseFloat(data.correlation_raw) || 0,
+        signal_strength: (data.signal_strength as EntityProfile['signal_strength']) || 'weak',
       })
     }
 

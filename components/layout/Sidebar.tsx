@@ -10,6 +10,8 @@ import {
   Database,
   LineChart,
   Zap,
+  Activity,
+  Grid3X3,
   ChevronLeft,
   ChevronRight,
   Menu,
@@ -24,9 +26,11 @@ import { useArticles, useSweeps, useLinkedInPosts, useEntityProfiles, useMarketD
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, countKey: 'total' },
-  { href: '/feed', label: 'News Feed', icon: Newspaper, countKey: 'articles' },
+  { href: '/intelligence-feed', label: 'Intelligence Feed', icon: Newspaper, countKey: 'articles' },
   { href: '/trends', label: 'Trends', icon: TrendingUp, countKey: null },
   { href: '/entities', label: 'Market Intelligence', icon: Brain, countKey: 'entities' },
+  { href: '/signals', label: 'Signals', icon: Activity, countKey: null },
+  { href: '/heatmap', label: 'Heatmap', icon: Grid3X3, countKey: null },
   { href: '/sources', label: 'Sources', icon: Database, countKey: null },
   { href: '/market', label: 'Market Data', icon: LineChart, countKey: 'market' },
   { href: '/sweeps', label: 'Sweeps', icon: Zap, countKey: 'sweeps' },

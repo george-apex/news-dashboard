@@ -272,6 +272,10 @@ export interface EntityProfile {
   correlation: 'aligned' | 'divergent' | 'neutral'
   topics: string[]
   updated_at: string
+  sector: string
+  tier: 'full' | 'standard' | 'none'
+  correlation_raw: number
+  signal_strength: 'strong' | 'moderate' | 'weak'
 }
 
 export interface EntityProfilesResponse {

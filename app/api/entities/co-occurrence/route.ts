@@ -22,7 +22,7 @@ export async function GET() {
     const entityArticles = await (async () => {
       const p = redis.pipeline()
       for (const name of entityNames) {
-        p.smembers(keys.entityArticles(name))
+        p.zrange(keys.entityArticles(name), 0, -1, { rev: true })
       }
       return p.exec<string[][]>()
     })()
